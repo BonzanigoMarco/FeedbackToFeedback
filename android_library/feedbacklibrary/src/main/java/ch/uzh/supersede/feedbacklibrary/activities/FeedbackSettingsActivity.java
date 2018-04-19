@@ -12,10 +12,10 @@ import java.util.List;
 
 import ch.uzh.supersede.feedbacklibrary.R;
 import ch.uzh.supersede.feedbacklibrary.components.buttons.AbstractSettingsItem;
-import ch.uzh.supersede.feedbacklibrary.components.buttons.VotesListItem;
 import ch.uzh.supersede.feedbacklibrary.services.FeedbackMockService;
 import ch.uzh.supersede.feedbacklibrary.services.IFeedbackMockServiceEventListener;
-import ch.uzh.supersede.feedbacklibrary.services.IFeedbackServiceEventListener;
+
+import static ch.uzh.supersede.feedbacklibrary.services.IFeedbackServiceEventListener.EventType;
 
 @SuppressWarnings("squid:MaximumInheritanceDepth")
 public class FeedbackSettingsActivity extends AbstractBaseActivity implements IFeedbackMockServiceEventListener {
@@ -42,11 +42,12 @@ public class FeedbackSettingsActivity extends AbstractBaseActivity implements IF
         settingsButton = setOnClickListener(getView(R.id.settings_button_settings, Button.class));
 
         execFillFeedbackList();
+        toggleButtons(myButton);
         onPostCreate();
     }
 
     @Override
-    public void onEventCompleted(IFeedbackServiceEventListener.EventType eventType, Object response) {
+    public void onEventCompleted(EventType eventType, Object response) {
         switch (eventType) {
             case GET_MINE_FEEDBACK_VOTES:
                 myFeedbackList = (ArrayList<AbstractSettingsItem>) response;
@@ -62,19 +63,19 @@ public class FeedbackSettingsActivity extends AbstractBaseActivity implements IF
     }
 
     @Override
-    public void onEventFailed(IFeedbackServiceEventListener.EventType eventType, Object response) {
+    public void onEventFailed(EventType eventType, Object response) {
         //TODO [jfo]
     }
 
     @Override
-    public void onConnectionFailed(IFeedbackServiceEventListener.EventType eventType) {
+    public void onConnectionFailed(EventType eventType) {
         //TODO [jfo]
     }
 
     private void execFillFeedbackList() {
-        FeedbackMockService.getInstance().getOthersFeedbackVotes(this);
-        FeedbackMockService.getInstance().getMineFeedbackVotes(this);
-        FeedbackMockService.getInstance().getFeedbackSettings(this);
+        FeedbackMockService.getInstance().getOthersFeedbackVotes(this, this);
+        FeedbackMockService.getInstance().getMineFeedbackVotes(this, this);
+        FeedbackMockService.getInstance().getFeedbackSettings(this, this);
     }
 
     private Button setOnClickListener(Button button) {
@@ -110,7 +111,7 @@ public class FeedbackSettingsActivity extends AbstractBaseActivity implements IF
 
     private void load(List<AbstractSettingsItem> currentList) {
         scrollListLayout.removeAllViews();
-        getView(R.id.list_view_scroll, ScrollView.class).scrollTo(0, 0);
+        getView(R.id.settings_view_scroll, ScrollView.class).scrollTo(0, 0);
         for (AbstractSettingsItem item : currentList) {
             scrollListLayout.addView(item);
         }

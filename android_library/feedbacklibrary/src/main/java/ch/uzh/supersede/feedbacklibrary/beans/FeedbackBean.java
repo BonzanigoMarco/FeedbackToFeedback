@@ -2,11 +2,9 @@ package ch.uzh.supersede.feedbacklibrary.beans;
 
 import android.graphics.Color;
 
-import java.io.Serializable;
-
 import ch.uzh.supersede.feedbacklibrary.utils.CompareUtility;
 
-public class FeedbackBean implements Serializable{
+public class FeedbackBean extends AbstractFeedbackBean {
 
     @SuppressWarnings("squid:UnusedPrivateMethod")
     public enum FEEDBACK_STATUS {
@@ -33,10 +31,6 @@ public class FeedbackBean implements Serializable{
         }
     }
 
-    private String title;
-    private String userName;
-    private String technicalUserName;
-    private long timeStamp;
     private int upVotes;
     private int maxUpVotes;
     private int minUpVotes;
@@ -46,11 +40,7 @@ public class FeedbackBean implements Serializable{
     private FeedbackBean() {
     }
 
-    public static class Builder {
-        private String title;
-        private String userName;
-        private String technicalUserName;
-        private long timeStamp;
+    public static class Builder extends AbstractFeedbackBean.Builder<Builder> {
         private int upVotes;
         private int maxUpVotes;
         private int minUpVotes;
@@ -61,23 +51,8 @@ public class FeedbackBean implements Serializable{
             //NOP
         }
 
-        public Builder withTitle(String title) {
-            this.title = title;
-            return this;
-        }
-
-        public Builder withUserName(String userName) {
-            this.userName = userName;
-            return this;
-        }
-
-        public Builder withTechnicalUserName(String technicalUserName) {
-            this.technicalUserName = technicalUserName;
-            return this;
-        }
-
-        public Builder withTimestamp(long timeStamp) {
-            this.timeStamp = timeStamp;
+        @Override
+        Builder getThis() {
             return this;
         }
 
@@ -90,6 +65,7 @@ public class FeedbackBean implements Serializable{
             this.maxUpVotes = maxUpVotes;
             return this;
         }
+
         public Builder withMinUpVotes(int minUpVotes) {
             this.minUpVotes = minUpVotes;
             return this;
@@ -105,8 +81,9 @@ public class FeedbackBean implements Serializable{
             return this;
         }
 
+        @Override
         public FeedbackBean build() {
-            if (CompareUtility.notNull(title,userName,technicalUserName,timeStamp,maxUpVotes, minUpVotes,feedbackStatus)) {
+            if (CompareUtility.notNull(title, userName, technicalUserName, timeStamp, maxUpVotes, minUpVotes, feedbackStatus)) {
                 FeedbackBean bean = new FeedbackBean();
                 bean.title = this.title;
                 bean.userName = this.userName;
@@ -123,28 +100,12 @@ public class FeedbackBean implements Serializable{
         }
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public String getTechnicalUserName() {
-        return technicalUserName;
-    }
-
-    public long getTimeStamp() {
-        return timeStamp;
-    }
-
     public int getUpVotes() {
         return upVotes;
     }
 
     public String getUpVotesAsText() {
-        return upVotes<=0?String.valueOf(upVotes):"+"+upVotes;
+        return upVotes <= 0 ? String.valueOf(upVotes) : "+" + upVotes;
     }
 
     public int getResponses() {

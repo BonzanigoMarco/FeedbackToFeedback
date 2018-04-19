@@ -1,8 +1,16 @@
 package ch.uzh.supersede.feedbacklibrary.services;
 
+import android.app.Activity;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import ch.uzh.supersede.feedbacklibrary.beans.ConfigurationRequestBean;
+import ch.uzh.supersede.feedbacklibrary.beans.FeedbackBean;
+import ch.uzh.supersede.feedbacklibrary.beans.FeedbackVoteBean;
+import ch.uzh.supersede.feedbacklibrary.components.buttons.AbstractSettingsItem;
+import ch.uzh.supersede.feedbacklibrary.components.buttons.VotesListItem;
+import ch.uzh.supersede.feedbacklibrary.stubs.RepositoryStub;
 import okhttp3.MultipartBody;
 
 import static ch.uzh.supersede.feedbacklibrary.services.IFeedbackServiceEventListener.EventType.*;
@@ -36,15 +44,27 @@ public class FeedbackMockService {
         callback.onEventCompleted(GET_CONFIGURATION, null);
     }
 
-    public void getMineFeedbackVotes(IFeedbackMockServiceEventListener callback){
-        callback.onEventCompleted(GET_MINE_FEEDBACK_VOTES, null);
+    public void getMineFeedbackVotes(IFeedbackMockServiceEventListener callback, Activity activity){
+        ArrayList<AbstractSettingsItem> feedbackList = new ArrayList<>();
+        for (FeedbackVoteBean bean : RepositoryStub.generateFeedbackVote(activity, 25,  0.85f, 0.0f)) {
+            feedbackList.add(new VotesListItem(activity, 8, bean));
+        }
+        callback.onEventCompleted(GET_MINE_FEEDBACK_VOTES, feedbackList);
     }
 
-    public void getOthersFeedbackVotes(IFeedbackMockServiceEventListener callback){
-        callback.onEventCompleted(GET_OTHERS_FEEDBACK_VOTES, null);
+    public void getOthersFeedbackVotes(IFeedbackMockServiceEventListener callback, Activity activity){
+        ArrayList<AbstractSettingsItem> feedbackList = new ArrayList<>();
+        for (FeedbackVoteBean bean : RepositoryStub.generateFeedbackVote(activity, 25,  0.85f, 1.0f)) {
+            feedbackList.add(new VotesListItem(activity, 8, bean));
+        }
+        callback.onEventCompleted(GET_OTHERS_FEEDBACK_VOTES, feedbackList);
     }
 
-    public void getFeedbackSettings(IFeedbackMockServiceEventListener callback){
-        callback.onEventCompleted(GET_SETTINGS_FEEDBACK, null);
+    public void getFeedbackSettings(IFeedbackMockServiceEventListener callback, Activity activity){
+        ArrayList<AbstractSettingsItem> feedbackList = new ArrayList<>();
+        for (FeedbackBean bean : RepositoryStub.generateFeedback(activity, 25, -5, 50, 0.25f)) {
+            feedbackList.add(new VotesListItem(activity, 8, bean));
+        }
+        callback.onEventCompleted(GET_SETTINGS_FEEDBACK, feedbackList);
     }
 }
