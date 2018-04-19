@@ -19,7 +19,7 @@
             android:weightSum="12">
 
             <Button
-                android:id="@+id/list_button_mine"
+                android:id="@+id/settings_button_mine"
                 android:layout_width="0dp"
                 android:layout_height="fill_parent"
                 android:layout_marginLeft="5dp"
@@ -31,7 +31,7 @@
                 android:textColor="@color/white" />
 
             <Button
-                android:id="@+id/list_button_top"
+                android:id="@+id/settings_button_others"
                 android:layout_width="0dp"
                 android:layout_height="fill_parent"
                 android:layout_marginLeft="5dp"
@@ -43,7 +43,7 @@
                 android:textColor="@color/indigo" />
 
             <Button
-                android:id="@+id/list_button_hot"
+                android:id="@+id/settings_button_settings"
                 android:layout_width="0dp"
                 android:layout_height="fill_parent"
                 android:layout_marginLeft="5dp"
@@ -90,7 +90,7 @@
                 android:layout_weight="20">
 
                 <LinearLayout
-                    android:id="@+id/list_layout_scroll"
+                    android:id="@+id/settings_layout_scroll"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical" />
