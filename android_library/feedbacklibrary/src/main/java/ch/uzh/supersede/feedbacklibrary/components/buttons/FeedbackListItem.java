@@ -17,8 +17,10 @@ import ch.uzh.supersede.feedbacklibrary.R;
 import ch.uzh.supersede.feedbacklibrary.activities.FeedbackDetailsActivity;
 import ch.uzh.supersede.feedbacklibrary.database.FeedbackDatabase;
 import ch.uzh.supersede.feedbacklibrary.interfaces.ISortableFeedback;
+import ch.uzh.supersede.feedbacklibrary.services.FeedbackService;
 import ch.uzh.supersede.feedbacklibrary.utils.ColorUtility;
 import ch.uzh.supersede.feedbacklibrary.utils.DateUtility;
+import ch.uzh.supersede.feedbacklibrary.utils.FeedbackUtility;
 import ch.uzh.supersede.feedbacklibrary.utils.NumberUtility;
 import ch.uzh.supersede.feedbacklibrary.utils.StringUtility;
 import ch.uzh.supersede.feedbacklibrary.beans.FeedbackBean;
@@ -68,7 +70,8 @@ public class FeedbackListItem extends LinearLayout implements Comparable, ISorta
                 .getFeedbackStatus()
                 .getLabel()
                 .concat(SPACE + context.getString(R.string.list_resplies, feedbackBean.getResponses())), Gravity.START, drawable, padding, feedbackBean.getFeedbackStatus().getColor());
-        pointView = createTextView(shortParams, context, feedbackBean.getUpVotesAsText(), Gravity.END, drawable, padding, white);
+        String upVotes = FeedbackUtility.getUpVotesAsText(feedbackBean);
+        pointView = createTextView(shortParams, context, upVotes, Gravity.END, drawable, padding, white);
         updatePercentageColor();
         upperWrapperLayout.addView(titleView);
         upperWrapperLayout.addView(dateView);
@@ -134,14 +137,17 @@ public class FeedbackListItem extends LinearLayout implements Comparable, ISorta
     }
 
     public void updatePercentageColor() {
+        int minUpVotes = -50; //FIXME [jfo] remove if possible
+        int maxUpVotes = 50;
+
         float percent;
         if (feedbackBean.getUpVotes() < 0) {
-            percent = 1f / (2 * feedbackBean.getMinUpVotes()) * (feedbackBean.getMinUpVotes() - feedbackBean.getUpVotes());
+            percent = 1f / (2 * minUpVotes) * (minUpVotes - feedbackBean.getUpVotes());
         } else if (feedbackBean.getUpVotes() == 0) {
             pointView.setTextColor(DUPLICATE.getColor());
             return;
         } else {
-            percent = 1f / (2 * feedbackBean.getMaxUpVotes()) * (feedbackBean.getMaxUpVotes() + feedbackBean.getUpVotes());
+            percent = 1f / (2 * maxUpVotes) * (maxUpVotes + feedbackBean.getUpVotes());
         }
         pointView.setTextColor(ColorUtility.percentToColor(percent));
     }

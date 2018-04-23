@@ -2,9 +2,14 @@ package ch.uzh.supersede.feedbacklibrary.beans;
 
 import android.graphics.Color;
 
-import ch.uzh.supersede.feedbacklibrary.utils.CompareUtility;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
-public class FeedbackBean extends AbstractFeedbackBean {
+import ch.uzh.supersede.feedbacklibrary.utils.CompareUtility;
+import ch.uzh.supersede.feedbacklibrary.utils.FeedbackUtility;
+
+public class FeedbackBean implements Serializable {
 
     @SuppressWarnings("squid:UnusedPrivateMethod")
     public enum FEEDBACK_STATUS {
@@ -31,43 +36,60 @@ public class FeedbackBean extends AbstractFeedbackBean {
         }
     }
 
-    private int upVotes;
-    private int maxUpVotes;
-    private int minUpVotes;
+    private String id;
+    private String title;
+    private String userName;
+    private String technicalUserName;
+    private long timeStamp;
+    private List<FeedbackVoteBean> votes;
     private int responses;
     private FEEDBACK_STATUS feedbackStatus;
+    private boolean isSubscribed;
 
     private FeedbackBean() {
     }
 
-    public static class Builder extends AbstractFeedbackBean.Builder<Builder> {
-        private int upVotes;
-        private int maxUpVotes;
-        private int minUpVotes;
+    public static class Builder {
+        private String id;
+        private String title;
+        private String userName;
+        private String technicalUserName;
+        private long timeStamp;
+        private List<FeedbackVoteBean> votes;
         private int responses;
         private FEEDBACK_STATUS feedbackStatus;
+        private boolean isSubscribed;
 
         public Builder() {
             //NOP
         }
 
-        @Override
-        Builder getThis() {
+        public Builder(String id) {
+            this.id = id;
+        }
+
+        public Builder withTitle(String title) {
+            this.title = title;
             return this;
         }
 
-        public Builder withUpVotes(int upVotes) {
-            this.upVotes = upVotes;
+        public Builder withUserName(String userName) {
+            this.userName = userName;
             return this;
         }
 
-        public Builder withMaxUpVotes(int maxUpVotes) {
-            this.maxUpVotes = maxUpVotes;
+        public Builder withTechnicalUserName(String technicalUserName) {
+            this.technicalUserName = technicalUserName;
             return this;
         }
 
-        public Builder withMinUpVotes(int minUpVotes) {
-            this.minUpVotes = minUpVotes;
+        public Builder withTimestamp(long timeStamp) {
+            this.timeStamp = timeStamp;
+            return this;
+        }
+
+        public Builder withVotes(List<FeedbackVoteBean> votes) {
+            this.votes = new ArrayList<>(votes);
             return this;
         }
 
@@ -81,31 +103,47 @@ public class FeedbackBean extends AbstractFeedbackBean {
             return this;
         }
 
-        @Override
+        public Builder withIsSubscribed(boolean isSubscribed) {
+            this.isSubscribed = isSubscribed;
+            return this;
+        }
+
         public FeedbackBean build() {
-            if (CompareUtility.notNull(title, userName, technicalUserName, timeStamp, maxUpVotes, minUpVotes, feedbackStatus)) {
+            if (CompareUtility.notNull(title, userName, technicalUserName, timeStamp, votes, feedbackStatus, isSubscribed)) {
                 FeedbackBean bean = new FeedbackBean();
+                bean.id = this.id;
                 bean.title = this.title;
                 bean.userName = this.userName;
                 bean.technicalUserName = this.technicalUserName;
                 bean.timeStamp = this.timeStamp;
-                bean.upVotes = this.upVotes;
-                bean.maxUpVotes = this.maxUpVotes;
-                bean.minUpVotes = this.minUpVotes;
+                bean.votes = this.votes;
                 bean.responses = this.responses;
                 bean.feedbackStatus = this.feedbackStatus;
+                bean.isSubscribed = this.isSubscribed;
                 return bean;
             }
             return null;
         }
     }
 
-    public int getUpVotes() {
-        return upVotes;
+    public String getId() {
+        return this.id;
     }
 
-    public String getUpVotesAsText() {
-        return upVotes <= 0 ? String.valueOf(upVotes) : "+" + upVotes;
+    public String getTitle() {
+        return title;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public String getTechnicalUserName() {
+        return technicalUserName;
+    }
+
+    public long getTimeStamp() {
+        return timeStamp;
     }
 
     public int getResponses() {
@@ -116,11 +154,15 @@ public class FeedbackBean extends AbstractFeedbackBean {
         return feedbackStatus;
     }
 
-    public int getMaxUpVotes() {
-        return maxUpVotes;
+    public List<FeedbackVoteBean> getVotes() {
+        return votes;
     }
 
-    public int getMinUpVotes() {
-        return minUpVotes;
+    public boolean isSubscribed() {
+        return isSubscribed;
+    }
+
+    public int getUpVotes(){
+        return FeedbackUtility.getUpVotes(getVotes());
     }
 }

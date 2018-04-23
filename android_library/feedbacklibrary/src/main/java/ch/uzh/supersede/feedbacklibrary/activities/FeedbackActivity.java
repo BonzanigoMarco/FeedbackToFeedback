@@ -174,8 +174,14 @@ public class FeedbackActivity extends AbstractBaseActivity implements AudioMecha
         }
     }
 
+
     @Override
-    public void onEventCompleted(EventType eventType, Response response) {
+    @SuppressWarnings("unchecked")
+    public void onEventCompleted(EventType eventType, Object response) {
+        if (BuildConfig.DEBUG) {
+            //TODO [jfo] implement
+            return;
+        }
         switch (eventType) {
             case PING_REPOSITORY:
                 prepareSendFeedback(getScreenshotMultipartbodyParts(), getAudioMultipartbodyParts());
@@ -183,7 +189,7 @@ public class FeedbackActivity extends AbstractBaseActivity implements AudioMecha
             case CREATE_FEEDBACK_VARIANT:
                 break;
             case GET_CONFIGURATION:
-                execLoadConfiguration(response);
+                execLoadConfiguration((Response<OrchestratorConfigurationItem>) response);
                 break;
             default:
                 break;
@@ -191,7 +197,7 @@ public class FeedbackActivity extends AbstractBaseActivity implements AudioMecha
     }
 
     @Override
-    public void onEventFailed(EventType eventType, Response response) {
+    public void onEventFailed(EventType eventType, Object response) {
         switch (eventType) {
             case GET_CONFIGURATION:
                 closeProgressDialog();
@@ -227,7 +233,7 @@ public class FeedbackActivity extends AbstractBaseActivity implements AudioMecha
 
     private void initConfiguration(long applicationId) {
         ConfigurationRequestBean configurationRequestBean =
-                new ConfigurationRequestBean.ConfigurationRequestBeanBuilder(this, this.getClass())
+                new ConfigurationRequestBean.Builder(this, this.getClass())
                         .withApplicationId(applicationId)
                         .withLanguage(language)
                         .build();

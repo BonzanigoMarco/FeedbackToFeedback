@@ -3,40 +3,56 @@ package ch.uzh.supersede.feedbacklibrary.stubs;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
-import ch.uzh.supersede.feedbacklibrary.beans.FeedbackVoteBean;
-import ch.uzh.supersede.feedbacklibrary.database.FeedbackDatabase;
-import ch.uzh.supersede.feedbacklibrary.utils.*;
 import ch.uzh.supersede.feedbacklibrary.beans.FeedbackBean;
 import ch.uzh.supersede.feedbacklibrary.beans.FeedbackBean.FEEDBACK_STATUS;
+import ch.uzh.supersede.feedbacklibrary.beans.FeedbackVoteBean;
+import ch.uzh.supersede.feedbacklibrary.database.FeedbackDatabase;
+import ch.uzh.supersede.feedbacklibrary.utils.DateUtility;
+import ch.uzh.supersede.feedbacklibrary.utils.NumberUtility;
 
-import static ch.uzh.supersede.feedbacklibrary.utils.Constants.TECHNICAL_USER_NAME;
-import static ch.uzh.supersede.feedbacklibrary.utils.Constants.USER_NAME;
-import static ch.uzh.supersede.feedbacklibrary.utils.PermissionUtility.USER_LEVEL.ACTIVE;
 import static ch.uzh.supersede.feedbacklibrary.beans.FeedbackBean.FEEDBACK_STATUS.*;
+import static ch.uzh.supersede.feedbacklibrary.utils.Constants.*;
+import static ch.uzh.supersede.feedbacklibrary.utils.PermissionUtility.USER_LEVEL.ACTIVE;
 
 public class RepositoryStub {
     private RepositoryStub() {
     }
 
-    public static List<FeedbackBean> generateFeedback(Context context, int count, int minUpVotes, int maxUpVotes, float ownFeedbackPercent) {
+    public static FeedbackBean getFeedback(Context context, String feedbackId) {
+        int minVotes = 0;
+        int maxVotes = 100;
+        float ownFeedbackPercent = 0.1f;
+        //FIXME [jfo] do not generate new feedback but get stored one
+        return generateFeedback(context, minVotes, maxVotes, ownFeedbackPercent, feedbackId);
+    }
+
+    public static List<FeedbackBean> generateFeedback(Context context, int count, int minVotes, int maxVotes, float ownFeedbackPercent) {
         ArrayList<FeedbackBean> feedbackBeans = new ArrayList<>();
         for (int f = 0; f < count; f++) {
-            feedbackBeans.add(generateFeedback(context, minUpVotes, maxUpVotes, ownFeedbackPercent));
+            feedbackBeans.add(generateFeedback(context, minVotes, maxVotes, ownFeedbackPercent));
         }
         return feedbackBeans;
     }
 
-    public static List<FeedbackVoteBean> generateFeedbackVote(Context context, int count,  float upVoteProbability, float ownFeedbackPercent){
+    private static List<FeedbackVoteBean> generateFeedbackVotes(Context context, int count, String feedbackId) {
         ArrayList<FeedbackVoteBean> feedbackVoteBeans = new ArrayList<>();
         for (int f = 0; f < count; f++) {
-            feedbackVoteBeans.add(generateFeedbackVote(context, upVoteProbability, ownFeedbackPercent));
+            feedbackVoteBeans.add(generateFeedbackVote(context, feedbackId));
         }
         return feedbackVoteBeans;
     }
 
-    private static FeedbackBean generateFeedback(Context context, int minUpVotes, int maxUpVotes, float ownFeedbackPercent) {
+    private static FeedbackBean generateFeedback(Context context, int minVotes, int maxVotes, float ownFeedbackPercent) {
+        String feedbackId = UUID.randomUUID().toString();
+        return generateFeedback(context, minVotes, maxVotes, ownFeedbackPercent, feedbackId);
+    }
+
+    private static FeedbackBean generateFeedback(Context context, int minVotes, int maxVotes, float ownFeedbackPercent, String feedbackId) {
         int upperBound = ownFeedbackPercent > 0 ? NumberUtility.divide(1, ownFeedbackPercent) : 0;
         boolean ownFeedback = ACTIVE.check(context) && NumberUtility.randomInt(0, upperBound > 0 ? upperBound - 1 : upperBound) == 0;
         FEEDBACK_STATUS feedbackStatus = generateFeedbackStatus();
@@ -44,37 +60,33 @@ public class RepositoryStub {
         String userName = generateUserName(context, ownFeedback);
         String technicalUserName = generateTechnicalUserName(context, ownFeedback);
         long timeStamp = generateTimestamp();
-        int upVotes = generateUpVotes(minUpVotes, maxUpVotes, feedbackStatus);
         int responses = generateResponses();
+        boolean isSubscribed = new Random().nextBoolean();
 
-        return new FeedbackBean.Builder()
+        return new FeedbackBean.Builder(feedbackId)
                 .withTitle(title)
                 .withUserName(userName)
                 .withTechnicalUserName(technicalUserName)
                 .withTimestamp(timeStamp)
-                .withUpVotes(upVotes)
-                .withMinUpVotes(minUpVotes)
-                .withMaxUpVotes(maxUpVotes)
+                .withVotes(generateFeedbackVotes(context, new Random().nextInt(maxVotes) + minVotes, feedbackId))
                 .withResponses(responses)
                 .withStatus(feedbackStatus)
+                .withIsSubscribed(isSubscribed)
                 .build();
     }
 
-    private static FeedbackVoteBean generateFeedbackVote(Context context, float upVoteProbability, float ownFeedbackPercent) {
-        int upperBound = ownFeedbackPercent > 0 ? NumberUtility.divide(1, ownFeedbackPercent) : 0;
-        boolean ownFeedback = ACTIVE.check(context) && NumberUtility.randomInt(0, upperBound > 0 ? upperBound - 1 : upperBound) == 0;
-        String title = generateTitle();
-        String userName = generateUserName(context, ownFeedback);
-        String technicalUserName = generateTechnicalUserName(context, ownFeedback);
+    private static FeedbackVoteBean generateFeedbackVote(Context context, String feedbackId) {
+        int vote = generateVote();
+        String userName = generateUserName(context, false);
+        String technicalUserName = generateTechnicalUserName(context, true);
         long timeStamp = generateTimestamp();
-        int vote = generateVote(upVoteProbability);
 
         return new FeedbackVoteBean.Builder()
-                .withTitle(title)
+                .withVote(vote)
                 .withUserName(userName)
                 .withTechnicalUserName(technicalUserName)
                 .withTimestamp(timeStamp)
-                .withVote(vote)
+                .withFeedbackId(feedbackId)
                 .build();
     }
 
@@ -83,26 +95,12 @@ public class RepositoryStub {
         return status[NumberUtility.randomPosition(status)];
     }
 
-    private static int generateVote(float upVoteProbability) {
-        if (upVoteProbability <= 0) {
-            return 0;
-        } else if (upVoteProbability >= 1) {
-            return 1;
-        }
-        return (int) Math.round((1.0 - Math.random()) * upVoteProbability);
+    private static int generateVote() {
+        return new Random().nextInt(2) * 2 - 1; // returns either -1 or 1
     }
 
     private static int generateResponses() {
         return NumberUtility.randomInt(0, 50);
-    }
-
-    private static int generateUpVotes(int minUpVotes, int maxUpVotes, FEEDBACK_STATUS feedbackStatus) {
-        if (CompareUtility.oneOf(feedbackStatus, REJECTED)) {
-            return NumberUtility.randomInt(minUpVotes, -1);
-        } else if (CompareUtility.oneOf(feedbackStatus, DUPLICATE)) {
-            return 0;
-        }
-        return NumberUtility.randomInt(0, maxUpVotes);
     }
 
     private static long generateTimestamp() {
@@ -135,5 +133,4 @@ public class RepositoryStub {
     public static String getUniqueName(String name) {
         return name.concat("#").concat(String.valueOf(NumberUtility.multiply(99999999, Math.random())));
     }
-
 }

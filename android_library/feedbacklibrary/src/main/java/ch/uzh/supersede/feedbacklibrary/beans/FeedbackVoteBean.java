@@ -1,9 +1,15 @@
 package ch.uzh.supersede.feedbacklibrary.beans;
 
+import java.io.Serializable;
+
 import ch.uzh.supersede.feedbacklibrary.utils.CompareUtility;
 
-public class FeedbackVoteBean extends AbstractFeedbackBean {
+public class FeedbackVoteBean implements Serializable {
     private int vote;
+    private String userName;
+    private String technicalUserName;
+    private long timeStamp;
+    private String feedbackId;
 
     private FeedbackVoteBean() {
     }
@@ -12,16 +18,31 @@ public class FeedbackVoteBean extends AbstractFeedbackBean {
         return vote;
     }
 
-    public static class Builder extends AbstractFeedbackBean.Builder<Builder> {
+    public String getUserName() {
+        return userName;
+    }
+
+    public String getTechnicalUserName() {
+        return technicalUserName;
+    }
+
+    public long getTimeStamp() {
+        return timeStamp;
+    }
+
+    public String getFeedbackId() {
+        return feedbackId;
+    }
+
+    public static class Builder {
         private int vote;
+        private String userName;
+        private String technicalUserName;
+        private long timeStamp;
+        private String feedbackId;
 
         public Builder() {
             //NOP
-        }
-
-        @Override
-        Builder getThis() {
-            return this;
         }
 
         public Builder withVote(int vote) {
@@ -29,15 +50,34 @@ public class FeedbackVoteBean extends AbstractFeedbackBean {
             return this;
         }
 
-        @Override
+        public Builder withUserName(String userName) {
+            this.userName = userName;
+            return this;
+        }
+
+        public Builder withTechnicalUserName(String technicalUserName) {
+            this.technicalUserName = technicalUserName;
+            return this;
+        }
+
+        public Builder withTimestamp(long timeStamp) {
+            this.timeStamp = timeStamp;
+            return this;
+        }
+
+        public Builder withFeedbackId(String feedbackId) {
+            this.feedbackId = feedbackId;
+            return this;
+        }
+
         public FeedbackVoteBean build() {
-            if (CompareUtility.notNull(title, userName, technicalUserName, timeStamp, vote)) {
+            if (CompareUtility.notNull(vote, userName, technicalUserName, timeStamp, feedbackId)) {
                 FeedbackVoteBean bean = new FeedbackVoteBean();
-                bean.title = this.title;
+                bean.vote = this.vote;
                 bean.userName = this.userName;
                 bean.technicalUserName = this.technicalUserName;
                 bean.timeStamp = this.timeStamp;
-                bean.vote = this.vote;
+                bean.feedbackId = this.feedbackId;
                 return bean;
             }
             return null;

@@ -14,23 +14,25 @@ import android.widget.TextView;
 
 import ch.uzh.supersede.feedbacklibrary.R;
 import ch.uzh.supersede.feedbacklibrary.activities.FeedbackDetailsActivity;
-import ch.uzh.supersede.feedbacklibrary.beans.AbstractFeedbackBean;
-import ch.uzh.supersede.feedbacklibrary.database.FeedbackDatabase;
+import ch.uzh.supersede.feedbacklibrary.beans.FeedbackBean;
+import ch.uzh.supersede.feedbacklibrary.utils.DateUtility;
 import ch.uzh.supersede.feedbacklibrary.utils.NumberUtility;
 
-import static ch.uzh.supersede.feedbacklibrary.utils.Constants.*;
-import static ch.uzh.supersede.feedbacklibrary.utils.PermissionUtility.USER_LEVEL.ACTIVE;
+import static ch.uzh.supersede.feedbacklibrary.utils.Constants.EXTRA_KEY_FEEDBACK_BEAN;
 
-public abstract class AbstractSettingsItem extends LinearLayout {
+public abstract class AbstractSettingsListItem extends LinearLayout {
     public static final int PADDING = 10;
-
-    private TextView titleView;
-    private AbstractFeedbackBean feedbackBean;
-    private String ownUser = USER_NAME_ANONYMOUS;
-
+    private FeedbackBean feedbackBean;
     private Drawable coloredBackground;
     private LinearLayout upperWrapperLayout;
     private LinearLayout lowerWrapperLayout;
+    private TextView dateView;
+    private TextView titleView;
+    private int textColor;
+
+    public FeedbackBean getFeedbackBean() {
+        return feedbackBean;
+    }
 
     public LinearLayoutCompat.LayoutParams getShortParams() {
         return shortParams;
@@ -50,7 +52,19 @@ public abstract class AbstractSettingsItem extends LinearLayout {
         return coloredBackground;
     }
 
-    public AbstractSettingsItem(Context context, int visibleTiles, AbstractFeedbackBean feedbackBean) {
+    public TextView getDateView() {
+        return dateView;
+    }
+
+    public int getTextColor() {
+        return textColor;
+    }
+
+    public TextView getTitleView() {
+        return titleView;
+    }
+
+    public AbstractSettingsListItem(Context context, int visibleTiles, FeedbackBean feedbackBean) {
         super(context);
         this.feedbackBean = feedbackBean;
 
@@ -62,22 +76,24 @@ public abstract class AbstractSettingsItem extends LinearLayout {
         int screenWidth = displayMetrics.widthPixels;
         int partHeight = NumberUtility.divide(screenHeight, visibleTiles + 3);
         int innerLayoutWidth = NumberUtility.multiply(screenWidth, 0.905f); //weighted 20/22
-        LinearLayoutCompat.LayoutParams masterParams = new LinearLayoutCompat.LayoutParams(screenWidth, partHeight);
+        LayoutParams masterParams = new LayoutParams(screenWidth, partHeight);
         masterParams.setMargins(5, 5, 5, 5);
         setLayoutParams(masterParams);
         setOrientation(VERTICAL);
         LinearLayoutCompat.LayoutParams longParams = new LinearLayoutCompat.LayoutParams(screenWidth, partHeight / 2);
         shortParams = new LinearLayoutCompat.LayoutParams(innerLayoutWidth / 2, partHeight / 2);
         coloredBackground = ContextCompat.getDrawable(context, R.drawable.dark_blue_square);
-        int white = ContextCompat.getColor(context, R.color.white);
+        textColor = ContextCompat.getColor(context, R.color.white);
         upperWrapperLayout = createWrapperLayout(longParams, context, HORIZONTAL);
         lowerWrapperLayout = createWrapperLayout(longParams, context, HORIZONTAL);
 
-        if (ACTIVE.check(context)) {
-            ownUser = FeedbackDatabase.getInstance(getContext()).readString(TECHNICAL_USER_NAME, null);
-        }
-        titleView = createTextView(shortParams, context, feedbackBean.getTitle(), Gravity.START, coloredBackground, PADDING, white);
-        upperWrapperLayout.addView(titleView);
+        titleView = createTextView(getShortParams(), context, feedbackBean.getUserName().concat(": " + feedbackBean.getTitle()), Gravity.START, getColoredBackground(), PADDING, getTextColor());
+        dateView = createTextView(shortParams, context, context.getString(R.string.list_date, DateUtility.getDateFromLong(feedbackBean.getTimeStamp())), Gravity.END, coloredBackground, PADDING,
+                textColor);
+        TextView statusView = createTextView(shortParams, context, feedbackBean.getFeedbackStatus().getLabel(),
+                Gravity.START, coloredBackground, PADDING, feedbackBean.getFeedbackStatus().getColor());
+
+        lowerWrapperLayout.addView(statusView);
 
         setOnLongClickListener(new OnLongClickListener() {
             @Override
@@ -103,7 +119,7 @@ public abstract class AbstractSettingsItem extends LinearLayout {
         return linearLayout;
     }
 
-    private TextView createTextView(LinearLayoutCompat.LayoutParams layoutParams, Context context, String text, int gravity, Drawable background, int padding, int textColor) {
+    protected TextView createTextView(LinearLayoutCompat.LayoutParams layoutParams, Context context, String text, int gravity, Drawable background, int padding, int textColor) {
         TextView textView = new TextView(context);
         textView.setLayoutParams(layoutParams);
         textView.setText(text);

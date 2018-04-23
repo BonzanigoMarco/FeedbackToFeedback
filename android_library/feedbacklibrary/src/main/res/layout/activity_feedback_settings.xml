@@ -51,7 +51,7 @@
                 android:layout_marginTop="5dp"
                 android:layout_weight="4"
                 android:background="@drawable/gray_tab"
-                android:text="@string/settings_button_settings"
+                android:text="@string/settings_button_subscriptions"
                 android:textColor="@color/indigo" />
         </LinearLayout>
 

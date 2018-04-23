@@ -10,15 +10,16 @@ import android.widget.ScrollView;
 import java.util.ArrayList;
 import java.util.List;
 
+import ch.uzh.supersede.feedbacklibrary.BuildConfig;
 import ch.uzh.supersede.feedbacklibrary.R;
-import ch.uzh.supersede.feedbacklibrary.components.buttons.AbstractSettingsItem;
-import ch.uzh.supersede.feedbacklibrary.services.FeedbackMockService;
-import ch.uzh.supersede.feedbacklibrary.services.IFeedbackMockServiceEventListener;
+import ch.uzh.supersede.feedbacklibrary.components.buttons.AbstractSettingsListItem;
+import ch.uzh.supersede.feedbacklibrary.services.FeedbackService;
+import ch.uzh.supersede.feedbacklibrary.services.IFeedbackServiceEventListener;
 
 import static ch.uzh.supersede.feedbacklibrary.services.IFeedbackServiceEventListener.EventType;
 
 @SuppressWarnings("squid:MaximumInheritanceDepth")
-public class FeedbackSettingsActivity extends AbstractBaseActivity implements IFeedbackMockServiceEventListener {
+public class FeedbackSettingsActivity extends AbstractBaseActivity implements IFeedbackServiceEventListener {
 
     private LinearLayout scrollListLayout;
 
@@ -26,9 +27,9 @@ public class FeedbackSettingsActivity extends AbstractBaseActivity implements IF
     private Button othersButton;
     private Button settingsButton;
 
-    private ArrayList<AbstractSettingsItem> myFeedbackList = new ArrayList<>();
-    private ArrayList<AbstractSettingsItem> othersFeedbackList = new ArrayList<>();
-    private ArrayList<AbstractSettingsItem> settingsFeedbackList = new ArrayList<>();
+    private ArrayList<AbstractSettingsListItem> myFeedbackList = new ArrayList<>();
+    private ArrayList<AbstractSettingsListItem> othersFeedbackList = new ArrayList<>();
+    private ArrayList<AbstractSettingsListItem> settingsFeedbackList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,35 +48,39 @@ public class FeedbackSettingsActivity extends AbstractBaseActivity implements IF
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void onEventCompleted(EventType eventType, Object response) {
-        switch (eventType) {
-            case GET_MINE_FEEDBACK_VOTES:
-                myFeedbackList = (ArrayList<AbstractSettingsItem>) response;
-                break;
-            case GET_OTHERS_FEEDBACK_VOTES:
-                othersFeedbackList = (ArrayList<AbstractSettingsItem>) response;
-                break;
-            case GET_SETTINGS_FEEDBACK:
-                settingsFeedbackList = (ArrayList<AbstractSettingsItem>) response;
-                break;
-            default:
+        if (BuildConfig.DEBUG) {
+            switch (eventType) {
+                case GET_MINE_FEEDBACK_VOTES:
+                    myFeedbackList = (ArrayList<AbstractSettingsListItem>) response;
+                    break;
+                case GET_OTHERS_FEEDBACK_VOTES:
+                    othersFeedbackList = (ArrayList<AbstractSettingsListItem>) response;
+                    break;
+                case GET_FEEDBACK_SETTINGS:
+                    settingsFeedbackList = (ArrayList<AbstractSettingsListItem>) response;
+                    break;
+                default:
+            }
         }
+        //TODO [jfo] real implementation
     }
 
     @Override
     public void onEventFailed(EventType eventType, Object response) {
-        //TODO [jfo]
+        //TODO [jfo] implementation
     }
 
     @Override
     public void onConnectionFailed(EventType eventType) {
-        //TODO [jfo]
+        //TODO [jfo] implementation
     }
 
     private void execFillFeedbackList() {
-        FeedbackMockService.getInstance().getOthersFeedbackVotes(this, this);
-        FeedbackMockService.getInstance().getMineFeedbackVotes(this, this);
-        FeedbackMockService.getInstance().getFeedbackSettings(this, this);
+        FeedbackService.getInstance().getOthersFeedbackVotes(this, this);
+        FeedbackService.getInstance().getMineFeedbackVotes(this, this);
+        FeedbackService.getInstance().getFeedbackSettings(this, this);
     }
 
     private Button setOnClickListener(Button button) {
@@ -109,10 +114,10 @@ public class FeedbackSettingsActivity extends AbstractBaseActivity implements IF
         }
     }
 
-    private void load(List<AbstractSettingsItem> currentList) {
+    private void load(List<AbstractSettingsListItem> currentList) {
         scrollListLayout.removeAllViews();
         getView(R.id.settings_view_scroll, ScrollView.class).scrollTo(0, 0);
-        for (AbstractSettingsItem item : currentList) {
+        for (AbstractSettingsListItem item : currentList) {
             scrollListLayout.addView(item);
         }
     }
