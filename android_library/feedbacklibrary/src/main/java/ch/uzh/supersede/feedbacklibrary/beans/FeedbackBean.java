@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ch.uzh.supersede.feedbacklibrary.utils.CompareUtility;
-import ch.uzh.supersede.feedbacklibrary.utils.FeedbackUtility;
 
 public class FeedbackBean implements Serializable {
 
@@ -42,6 +41,7 @@ public class FeedbackBean implements Serializable {
     private String technicalUserName;
     private long timeStamp;
     private List<FeedbackVoteBean> votes;
+    private int upVotes;
     private int responses;
     private FEEDBACK_STATUS feedbackStatus;
     private boolean isSubscribed;
@@ -56,6 +56,7 @@ public class FeedbackBean implements Serializable {
         private String technicalUserName;
         private long timeStamp;
         private List<FeedbackVoteBean> votes;
+        private int upVotes;
         private int responses;
         private FEEDBACK_STATUS feedbackStatus;
         private boolean isSubscribed;
@@ -93,6 +94,11 @@ public class FeedbackBean implements Serializable {
             return this;
         }
 
+        public Builder withUpVotes(int upVotes) {
+            this.upVotes = upVotes;
+            return this;
+        }
+
         public Builder withResponses(int responses) {
             this.responses = responses;
             return this;
@@ -109,7 +115,7 @@ public class FeedbackBean implements Serializable {
         }
 
         public FeedbackBean build() {
-            if (CompareUtility.notNull(title, userName, technicalUserName, timeStamp, votes, feedbackStatus, isSubscribed)) {
+            if (CompareUtility.notNull(id, title, userName, technicalUserName, timeStamp, votes, upVotes, feedbackStatus, isSubscribed)) {
                 FeedbackBean bean = new FeedbackBean();
                 bean.id = this.id;
                 bean.title = this.title;
@@ -117,6 +123,7 @@ public class FeedbackBean implements Serializable {
                 bean.technicalUserName = this.technicalUserName;
                 bean.timeStamp = this.timeStamp;
                 bean.votes = this.votes;
+                bean.upVotes = this.upVotes;
                 bean.responses = this.responses;
                 bean.feedbackStatus = this.feedbackStatus;
                 bean.isSubscribed = this.isSubscribed;
@@ -154,6 +161,10 @@ public class FeedbackBean implements Serializable {
         return feedbackStatus;
     }
 
+    public int getUpVotes() {
+        return upVotes;
+    }
+
     public List<FeedbackVoteBean> getVotes() {
         return votes;
     }
@@ -162,7 +173,4 @@ public class FeedbackBean implements Serializable {
         return isSubscribed;
     }
 
-    public int getUpVotes(){
-        return FeedbackUtility.getUpVotes(getVotes());
-    }
 }

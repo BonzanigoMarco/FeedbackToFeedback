@@ -13,6 +13,7 @@ import ch.uzh.supersede.feedbacklibrary.beans.FeedbackBean.FEEDBACK_STATUS;
 import ch.uzh.supersede.feedbacklibrary.beans.FeedbackVoteBean;
 import ch.uzh.supersede.feedbacklibrary.database.FeedbackDatabase;
 import ch.uzh.supersede.feedbacklibrary.utils.DateUtility;
+import ch.uzh.supersede.feedbacklibrary.utils.FeedbackUtility;
 import ch.uzh.supersede.feedbacklibrary.utils.NumberUtility;
 
 import static ch.uzh.supersede.feedbacklibrary.beans.FeedbackBean.FEEDBACK_STATUS.*;
@@ -20,6 +21,8 @@ import static ch.uzh.supersede.feedbacklibrary.utils.Constants.*;
 import static ch.uzh.supersede.feedbacklibrary.utils.PermissionUtility.USER_LEVEL.ACTIVE;
 
 public class RepositoryStub {
+    private static String ownUser;
+
     private RepositoryStub() {
     }
 
@@ -59,6 +62,8 @@ public class RepositoryStub {
         String title = generateTitle();
         String userName = generateUserName(context, ownFeedback);
         String technicalUserName = generateTechnicalUserName(context, ownFeedback);
+        List<FeedbackVoteBean> votes = generateFeedbackVotes(context, new Random().nextInt(maxVotes) + minVotes, feedbackId);
+        int upVotes = FeedbackUtility.getUpVotes(votes);
         long timeStamp = generateTimestamp();
         int responses = generateResponses();
         boolean isSubscribed = new Random().nextBoolean();
@@ -68,7 +73,8 @@ public class RepositoryStub {
                 .withUserName(userName)
                 .withTechnicalUserName(technicalUserName)
                 .withTimestamp(timeStamp)
-                .withVotes(generateFeedbackVotes(context, new Random().nextInt(maxVotes) + minVotes, feedbackId))
+                .withVotes(votes)
+                .withUpVotes(upVotes)
                 .withResponses(responses)
                 .withStatus(feedbackStatus)
                 .withIsSubscribed(isSubscribed)
@@ -110,7 +116,10 @@ public class RepositoryStub {
     @NonNull
     private static String generateTechnicalUserName(Context context, boolean own) {
         if (own) {
-            return FeedbackDatabase.getInstance(context).readString(TECHNICAL_USER_NAME, null);
+            if (ownUser == null) {
+                ownUser = FeedbackDatabase.getInstance(context).readString(TECHNICAL_USER_NAME, null);
+            }
+            return ownUser;
         }
         return UUID.randomUUID().toString();
     }

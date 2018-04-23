@@ -80,6 +80,7 @@ public class FeedbackDatabase extends AbstractFeedbackDatabase {
         if (cursor.moveToFirst()) {
             d = cursor.getDouble(0);
         }
+        cursor.close();
         return ObjectUtility.nvl(d, valueIfNull);
     }
 
@@ -90,6 +91,7 @@ public class FeedbackDatabase extends AbstractFeedbackDatabase {
         if (cursor.moveToFirst()) {
             f = cursor.getFloat(0);
         }
+        cursor.close();
         return ObjectUtility.nvl(f, valueIfNull);
     }
 
@@ -100,6 +102,7 @@ public class FeedbackDatabase extends AbstractFeedbackDatabase {
         if (cursor.moveToFirst()) {
             i = cursor.getInt(0);
         }
+        cursor.close();
         return ObjectUtility.nvl(i, valueIfNull);
     }
 
@@ -110,6 +113,7 @@ public class FeedbackDatabase extends AbstractFeedbackDatabase {
         if (cursor.moveToFirst()) {
             l = cursor.getLong(0);
         }
+        cursor.close();
         return ObjectUtility.nvl(l, valueIfNull);
     }
 
@@ -120,6 +124,7 @@ public class FeedbackDatabase extends AbstractFeedbackDatabase {
         if (cursor.moveToFirst()) {
             s = cursor.getShort(0);
         }
+        cursor.close();
         return ObjectUtility.nvl(s, valueIfNull);
     }
 
@@ -130,6 +135,7 @@ public class FeedbackDatabase extends AbstractFeedbackDatabase {
         if (cursor.moveToFirst()) {
             s = cursor.getString(0);
         }
+        cursor.close();
         return ObjectUtility.nvl(s, valueIfNull);
     }
 
@@ -140,21 +146,24 @@ public class FeedbackDatabase extends AbstractFeedbackDatabase {
         if (cursor.moveToFirst()) {
             b = cursor.getBlob(0);
         }
+        cursor.close();
         return b;
     }
 
-    public void deleteNumber(String key){
-        delete(NumberTableEntry.TABLE_NAME,NumberTableEntry.COLUMN_NAME_KEY,key);
+    public void deleteNumber(String key) {
+        delete(NumberTableEntry.TABLE_NAME, NumberTableEntry.COLUMN_NAME_KEY, key);
     }
-    public void deleteString(String key){
-        delete(TextTableEntry.TABLE_NAME,TextTableEntry.COLUMN_NAME_KEY,key);
+
+    public void deleteString(String key) {
+        delete(TextTableEntry.TABLE_NAME, TextTableEntry.COLUMN_NAME_KEY, key);
     }
-    public void deleteData(String key){
-        delete(DataTableEntry.TABLE_NAME,DataTableEntry.COLUMN_NAME_KEY,key);
+
+    public void deleteData(String key) {
+        delete(DataTableEntry.TABLE_NAME, DataTableEntry.COLUMN_NAME_KEY, key);
     }
 
 
-    private void delete(String tableName, String keyColumn, String key){
+    private void delete(String tableName, String keyColumn, String key) {
         SQLiteDatabase db = m_databaseHelper.getWritableDatabase();
         String selection = keyColumn + " LIKE ?";
         db.delete(tableName, selection, new String[]{key});
@@ -162,7 +171,7 @@ public class FeedbackDatabase extends AbstractFeedbackDatabase {
     }
 
     private long insert(String tableName, String keyColumn, String key, ContentValues values) {
-        delete(tableName,keyColumn,key);
+        delete(tableName, keyColumn, key);
         SQLiteDatabase db = m_databaseHelper.getWritableDatabase();
         long newRowId;
         newRowId = db.insert(tableName, "null", values);
