@@ -18,7 +18,6 @@ import ch.uzh.supersede.feedbacklibrary.utils.DateUtility;
 import ch.uzh.supersede.feedbacklibrary.utils.Enums;
 import ch.uzh.supersede.feedbacklibrary.utils.NumberUtility;
 
-import static ch.uzh.supersede.feedbacklibrary.database.FeedbackDatabase.SAVE_MODE.*;
 import static ch.uzh.supersede.feedbacklibrary.utils.Constants.USER_NAME;
 import static ch.uzh.supersede.feedbacklibrary.utils.Enums.FEEDBACK_STATUS.*;
 import static ch.uzh.supersede.feedbacklibrary.utils.Enums.SAVE_MODE.*;
@@ -117,7 +116,7 @@ public class RepositoryStub {
 
         UUID feedbackUid = localFeedbackBean.getFeedbackUid();
         String title = localFeedbackBean.getTitle();
-        Enums.FEEDBACK_STATUS feedbackStatus = localFeedbackBean.getStatus();
+        Enums.FEEDBACK_STATUS feedbackStatus = localFeedbackBean.getFeedbackStatus();
         int upVotes = localFeedbackBean.getVotes() + generateUpVotes(minUpVotes, maxUpVotes, feedbackStatus);
         long timeStamp = localFeedbackBean.getCreationDate();
         int responses = localFeedbackBean.getResponses();

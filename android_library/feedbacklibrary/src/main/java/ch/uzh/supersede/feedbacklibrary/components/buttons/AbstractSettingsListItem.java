@@ -91,8 +91,8 @@ public abstract class AbstractSettingsListItem extends LinearLayout {
         titleView = createTextView(getShortParams(), context, feedbackBean.getTitle(), Gravity.START, getColoredBackground(), PADDING, getTextColor());
         dateView = createTextView(shortParams, context, context.getString(R.string.list_date, DateUtility.getDateFromLong(feedbackBean.getCreationDate())), Gravity.END, coloredBackground, PADDING,
                 textColor);
-        TextView statusView = createTextView(shortParams, context, feedbackBean.getStatus().getLabel(),
-                Gravity.START, coloredBackground, PADDING, feedbackBean.getStatus().getColor());
+        TextView statusView = createTextView(shortParams, context, feedbackBean.getFeedbackStatus().getLabel(),
+                Gravity.START, coloredBackground, PADDING, feedbackBean.getFeedbackStatus().getColor());
 
         lowerWrapperLayout.addView(statusView);
 

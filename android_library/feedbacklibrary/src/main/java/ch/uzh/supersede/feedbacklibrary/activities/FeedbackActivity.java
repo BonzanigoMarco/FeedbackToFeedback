@@ -299,10 +299,10 @@ public class FeedbackActivity extends AbstractBaseActivity implements AudioMecha
     public void prepareSendFeedback() {
         feedback = new Feedback(mechanisms);
         feedback.setTitle(getResources().getString(R.string.feedback_title, System.currentTimeMillis()));
-        if (BuildConfig.DEBUG){
+        if (BuildConfig.DEBUG) {
             feedback.setApplicationId(orchestratorStub.getId());
             feedback.setConfigurationId(orchestratorStub.getId());
-        } else{
+        } else {
             feedback.setApplicationId(orchestratorConfiguration.getId());
             feedback.setConfigurationId(activeConfiguration.getId());
         }

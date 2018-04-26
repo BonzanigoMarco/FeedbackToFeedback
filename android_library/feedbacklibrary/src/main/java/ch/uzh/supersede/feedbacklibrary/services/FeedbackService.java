@@ -28,6 +28,7 @@ import ch.uzh.supersede.feedbacklibrary.configurations.OrchestratorConfiguration
 import ch.uzh.supersede.feedbacklibrary.database.FeedbackDatabase;
 import ch.uzh.supersede.feedbacklibrary.stubs.RepositoryStub;
 import ch.uzh.supersede.feedbacklibrary.utils.DialogUtils;
+import ch.uzh.supersede.feedbacklibrary.utils.Enums;
 import ch.uzh.supersede.feedbacklibrary.utils.Utils;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -37,11 +38,11 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-import static ch.uzh.supersede.feedbacklibrary.database.FeedbackDatabase.FETCH_MODE.*;
 import static ch.uzh.supersede.feedbacklibrary.services.IFeedbackServiceEventListener.EventType;
 import static ch.uzh.supersede.feedbacklibrary.services.IFeedbackServiceEventListener.EventType.*;
 import static ch.uzh.supersede.feedbacklibrary.utils.Constants.*;
 import static ch.uzh.supersede.feedbacklibrary.utils.Constants.ServicesConstants.FEEDBACK_SERVICE_TAG;
+import static ch.uzh.supersede.feedbacklibrary.utils.Enums.FETCH_MODE.*;
 
 /**
  * Singleton class that returns the original {@link FeedbackApiService} with its functions, defined in {@link IFeedbackAPI} iff {@code BuildConfig.DEBUG} is enabled, otherwise
@@ -239,7 +240,7 @@ public abstract class FeedbackService {
 
         @Override
         public void createFeedbackVariant(IFeedbackServiceEventListener callback, Activity activity, String language, long applicationId, FeedbackBean feedback, List<MultipartBody.Part> files) {
-            FeedbackDatabase.getInstance(activity).writeFeedback(feedback, FeedbackDatabase.SAVE_MODE.CREATED);
+            FeedbackDatabase.getInstance(activity).writeFeedback(feedback, Enums.SAVE_MODE.CREATED);
             callback.onEventCompleted(CREATE_FEEDBACK_VARIANT, null);
         }
 
