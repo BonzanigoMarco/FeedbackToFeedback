@@ -1,9 +1,11 @@
 package ch.uzh.supersede.feedbacklibrary.services;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
@@ -14,27 +16,30 @@ import java.util.Map;
 import ch.uzh.supersede.feedbacklibrary.BuildConfig;
 import ch.uzh.supersede.feedbacklibrary.R;
 import ch.uzh.supersede.feedbacklibrary.api.IFeedbackAPI;
+import ch.uzh.supersede.feedbacklibrary.beans.ConfigurationRequestBean;
 import ch.uzh.supersede.feedbacklibrary.beans.FeedbackBean;
-import ch.uzh.supersede.feedbacklibrary.beans.FeedbackVoteBean;
-import ch.uzh.supersede.feedbacklibrary.beans.SubscriptionRequestBean;
+import ch.uzh.supersede.feedbacklibrary.beans.LocalFeedbackBean;
 import ch.uzh.supersede.feedbacklibrary.components.buttons.AbstractSettingsListItem;
+import ch.uzh.supersede.feedbacklibrary.components.buttons.FeedbackListItem;
 import ch.uzh.supersede.feedbacklibrary.components.buttons.SubscriptionsListItem;
 import ch.uzh.supersede.feedbacklibrary.components.buttons.VotesListItem;
 import ch.uzh.supersede.feedbacklibrary.configurations.ConfigurationItem;
 import ch.uzh.supersede.feedbacklibrary.configurations.OrchestratorConfigurationItem;
+import ch.uzh.supersede.feedbacklibrary.database.FeedbackDatabase;
 import ch.uzh.supersede.feedbacklibrary.stubs.RepositoryStub;
 import ch.uzh.supersede.feedbacklibrary.utils.DialogUtils;
 import ch.uzh.supersede.feedbacklibrary.utils.Utils;
-import ch.uzh.supersede.feedbacklibrary.beans.ConfigurationRequestBean;
+import okhttp3.MediaType;
 import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import static ch.uzh.supersede.feedbacklibrary.database.FeedbackDatabase.FETCH_MODE.*;
 import static ch.uzh.supersede.feedbacklibrary.services.IFeedbackServiceEventListener.EventType;
 import static ch.uzh.supersede.feedbacklibrary.services.IFeedbackServiceEventListener.EventType.*;
-import static ch.uzh.supersede.feedbacklibrary.services.IFeedbackServiceEventListener.EventType.CREATE_SUBSCRIPTION;
 import static ch.uzh.supersede.feedbacklibrary.utils.Constants.*;
 import static ch.uzh.supersede.feedbacklibrary.utils.Constants.ServicesConstants.FEEDBACK_SERVICE_TAG;
 
@@ -72,7 +77,7 @@ public abstract class FeedbackService {
 
     public abstract void pingRepository(IFeedbackServiceEventListener callback);
 
-    public abstract void createFeedbackVariant(IFeedbackServiceEventListener callback, String language, long applicationId, MultipartBody.Part feedback, List<MultipartBody.Part> files);
+    public abstract void createFeedbackVariant(IFeedbackServiceEventListener callback, Activity activity, String language, long applicationId, FeedbackBean feedbackBean, List<MultipartBody.Part> files);
 
     public abstract void getConfiguration(IFeedbackServiceEventListener callback, ConfigurationRequestBean configurationRequestBean);
 
@@ -84,7 +89,7 @@ public abstract class FeedbackService {
 
     public abstract void getFeedbackSettings(IFeedbackServiceEventListener callback, Activity activity);
 
-    public abstract void createSubscription(IFeedbackServiceEventListener callback, SubscriptionRequestBean subscriptionRequestBean);
+    public abstract void createSubscription(IFeedbackServiceEventListener callback, Context context, FeedbackBean feedbackBean, boolean isChecked);
 
     private static class FeedbackApiService extends FeedbackService {
         @Override
@@ -102,8 +107,17 @@ public abstract class FeedbackService {
         }
 
         @Override
-        public void createFeedbackVariant(IFeedbackServiceEventListener callback, String language, long applicationId, MultipartBody.Part feedback, List<MultipartBody.Part> files) {
-            feedbackAPI.createFeedbackVariant(language, applicationId, feedback, files).enqueue(
+        public void createFeedbackVariant(IFeedbackServiceEventListener callback, Activity activity, String language, long applicationId, FeedbackBean feedbackBean, List<MultipartBody.Part> files) {
+            // The JSON string of the feedback
+            GsonBuilder builder = new GsonBuilder();
+            builder.excludeFieldsWithoutExposeAnnotation();
+            builder.serializeNulls();
+            Gson gson = builder.create();
+
+            String jsonString = gson.toJson(feedbackBean);
+            MultipartBody.Part jsonPart = MultipartBody.Part.createFormData("json", "json", RequestBody.create(MediaType.parse("application/json"), jsonString.getBytes()));
+
+            feedbackAPI.createFeedbackVariant(language, applicationId, jsonPart, files).enqueue(
                     new FeedbackCallback<JsonObject>(callback, EventType.CREATE_FEEDBACK_VARIANT) {
                     });
         }
@@ -187,7 +201,7 @@ public abstract class FeedbackService {
         }
 
         @Override
-        public void createSubscription(IFeedbackServiceEventListener callback, SubscriptionRequestBean subscriptionRequestBean) {
+        public void createSubscription(IFeedbackServiceEventListener callback, Context context, FeedbackBean feedbackBean, boolean isChecked) {
             //TODO [jfo] implement
         }
 
@@ -224,7 +238,8 @@ public abstract class FeedbackService {
         }
 
         @Override
-        public void createFeedbackVariant(IFeedbackServiceEventListener callback, String language, long applicationId, MultipartBody.Part feedback, List<MultipartBody.Part> files) {
+        public void createFeedbackVariant(IFeedbackServiceEventListener callback, Activity activity, String language, long applicationId, FeedbackBean feedback, List<MultipartBody.Part> files) {
+            FeedbackDatabase.getInstance(activity).writeFeedback(feedback, FeedbackDatabase.SAVE_MODE.CREATED);
             callback.onEventCompleted(CREATE_FEEDBACK_VARIANT, null);
         }
 
@@ -241,22 +256,18 @@ public abstract class FeedbackService {
         @Override
         public void getMineFeedbackVotes(IFeedbackServiceEventListener callback, Activity activity) {
             ArrayList<AbstractSettingsListItem> feedbackList = new ArrayList<>();
-            for (FeedbackBean feedback : RepositoryStub.generateFeedback(activity, 25, 0, 50, 0.0f)) {
-                for (FeedbackVoteBean bean : feedback.getVotes()) {
-                    feedbackList.add(new VotesListItem(activity, 8, bean));
-                }
+            for (LocalFeedbackBean feedback : FeedbackDatabase.getInstance(activity).getFeedbackBeans(VOTED)) {
+                feedbackList.add(new VotesListItem(activity, 8, feedback));
             }
             callback.onEventCompleted(GET_MINE_FEEDBACK_VOTES, feedbackList);
         }
 
         @Override
         public void getOthersFeedbackVotes(IFeedbackServiceEventListener callback, Activity activity) {
-            ArrayList<AbstractSettingsListItem> feedbackList = new ArrayList<>();
+            ArrayList<FeedbackListItem> feedbackList = new ArrayList<>();
 
-            for (FeedbackBean feedback : RepositoryStub.generateFeedback(activity, 25, 0, 50, 1.0f)) {
-                for (FeedbackVoteBean bean : feedback.getVotes()) {
-                    feedbackList.add(new VotesListItem(activity, 8, bean));
-                }
+            for (LocalFeedbackBean localFeedbackBean : FeedbackDatabase.getInstance(activity).getFeedbackBeans(OWN)) {
+                feedbackList.add(new FeedbackListItem(activity, 8, RepositoryStub.getFeedback(activity, localFeedbackBean)));
             }
 
             callback.onEventCompleted(GET_OTHERS_FEEDBACK_VOTES, feedbackList);
@@ -265,15 +276,16 @@ public abstract class FeedbackService {
         @Override
         public void getFeedbackSettings(IFeedbackServiceEventListener callback, Activity activity) {
             ArrayList<AbstractSettingsListItem> feedbackList = new ArrayList<>();
-            for (FeedbackBean bean : RepositoryStub.generateFeedback(activity, 25, 0, 50, 0.25f)) {
-                feedbackList.add(new SubscriptionsListItem(activity, 8, bean));
+            for (LocalFeedbackBean feedback : FeedbackDatabase.getInstance(activity).getFeedbackBeans(SUBSCRIBED)) {
+                feedbackList.add(new SubscriptionsListItem(activity, 8, feedback));
             }
             callback.onEventCompleted(GET_FEEDBACK_SETTINGS, feedbackList);
         }
 
         @Override
-        public void createSubscription(IFeedbackServiceEventListener callback, SubscriptionRequestBean subscriptionRequestBean) {
-            callback.onEventCompleted(CREATE_SUBSCRIPTION, subscriptionRequestBean);
+        public void createSubscription(IFeedbackServiceEventListener callback, Context context, FeedbackBean feedbackBean, boolean isChecked) {
+            RepositoryStub.sendSubscriptionChange(context, feedbackBean, isChecked);
+            callback.onEventCompleted(CREATE_SUBSCRIPTION, FeedbackDatabase.getInstance(context).getFeedbackState(feedbackBean));
         }
     }
 }

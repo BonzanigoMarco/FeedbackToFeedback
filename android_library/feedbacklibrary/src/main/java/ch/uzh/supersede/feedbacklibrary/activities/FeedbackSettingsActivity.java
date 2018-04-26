@@ -16,12 +16,15 @@ import ch.uzh.supersede.feedbacklibrary.components.buttons.AbstractSettingsListI
 import ch.uzh.supersede.feedbacklibrary.services.FeedbackService;
 import ch.uzh.supersede.feedbacklibrary.services.IFeedbackServiceEventListener;
 
-import static ch.uzh.supersede.feedbacklibrary.services.IFeedbackServiceEventListener.EventType;
+import static ch.uzh.supersede.feedbacklibrary.utils.Enums.*;
+import static ch.uzh.supersede.feedbacklibrary.utils.Enums.SETTINGS_VIEW.*;
+
 
 @SuppressWarnings("squid:MaximumInheritanceDepth")
 public class FeedbackSettingsActivity extends AbstractBaseActivity implements IFeedbackServiceEventListener {
 
     private LinearLayout scrollListLayout;
+    private SETTINGS_VIEW currentViewState = MINE;
 
     private Button myButton;
     private Button othersButton;
@@ -41,10 +44,14 @@ public class FeedbackSettingsActivity extends AbstractBaseActivity implements IF
         myButton = setOnClickListener(getView(R.id.settings_button_mine, Button.class));
         othersButton = setOnClickListener(getView(R.id.settings_button_others, Button.class));
         settingsButton = setOnClickListener(getView(R.id.settings_button_settings, Button.class));
-
-        execFillFeedbackList();
-        toggleButtons(myButton);
         onPostCreate();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        execFillFeedbackList();
+        toggleButtons(getViewByState(currentViewState));
     }
 
     @Override
@@ -100,10 +107,25 @@ public class FeedbackSettingsActivity extends AbstractBaseActivity implements IF
 
         if (v.getId() == myButton.getId()) {
             load(myFeedbackList);
+            currentViewState = MINE;
         } else if (v.getId() == othersButton.getId()) {
             load(othersFeedbackList);
+            currentViewState = OTHERS;
         } else if (v.getId() == settingsButton.getId()) {
             load(settingsFeedbackList);
+            currentViewState = SUBSCRIPTIONS;
+        }
+    }
+
+    private View getViewByState(SETTINGS_VIEW state) {
+        switch (state) {
+            case OTHERS:
+                return othersButton;
+            case SUBSCRIPTIONS:
+                return settingsButton;
+            case MINE:
+            default:
+                return myButton;
         }
     }
 
@@ -114,10 +136,10 @@ public class FeedbackSettingsActivity extends AbstractBaseActivity implements IF
         }
     }
 
-    private void load(List<AbstractSettingsListItem> currentList) {
+    private void load(List<? extends LinearLayout> currentList) {
         scrollListLayout.removeAllViews();
         getView(R.id.settings_view_scroll, ScrollView.class).scrollTo(0, 0);
-        for (AbstractSettingsListItem item : currentList) {
+        for (LinearLayout item : currentList) {
             scrollListLayout.addView(item);
         }
     }

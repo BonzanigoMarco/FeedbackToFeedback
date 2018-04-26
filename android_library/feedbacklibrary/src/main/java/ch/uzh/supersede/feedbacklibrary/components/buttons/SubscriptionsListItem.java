@@ -10,23 +10,18 @@ import android.widget.Switch;
 import android.widget.Toast;
 
 import ch.uzh.supersede.feedbacklibrary.BuildConfig;
-import ch.uzh.supersede.feedbacklibrary.beans.FeedbackBean;
-import ch.uzh.supersede.feedbacklibrary.beans.SubscriptionRequestBean;
+import ch.uzh.supersede.feedbacklibrary.beans.LocalFeedbackBean;
+import ch.uzh.supersede.feedbacklibrary.beans.LocalFeedbackState;
 import ch.uzh.supersede.feedbacklibrary.services.FeedbackService;
 import ch.uzh.supersede.feedbacklibrary.services.IFeedbackServiceEventListener;
+import ch.uzh.supersede.feedbacklibrary.stubs.RepositoryStub;
 
 public class SubscriptionsListItem extends AbstractSettingsListItem implements IFeedbackServiceEventListener {
-    private SubscriptionRequestBean subscriptionRequestBean;
-
-    public SubscriptionRequestBean getSubscriptionRequestBean() {
-        return subscriptionRequestBean;
-    }
-
     public IFeedbackServiceEventListener getListener() {
         return this;
     }
 
-    public SubscriptionsListItem(Context context, int visibleTiles, FeedbackBean feedbackBean) {
+    public SubscriptionsListItem(Context context, int visibleTiles, LocalFeedbackBean feedbackBean) {
         super(context, visibleTiles, feedbackBean);
 
         LinearLayout upperWrapperLayout = getUpperWrapperLayout();
@@ -42,26 +37,17 @@ public class SubscriptionsListItem extends AbstractSettingsListItem implements I
         addView(lowerWrapperLayout);
     }
 
-    private Switch createSwitch(LinearLayoutCompat.LayoutParams layoutParams, final Context context, int gravity, Drawable background, final FeedbackBean feedbackBean, int padding) {
+    private Switch createSwitch(LinearLayoutCompat.LayoutParams layoutParams, final Context context, int gravity, Drawable background, final LocalFeedbackBean feedbackBean, int padding) {
         Switch toggle = new Switch(context);
         toggle.setLayoutParams(layoutParams);
         toggle.setBackground(background);
         toggle.setPadding(padding, padding, padding, padding);
-        toggle.setChecked(feedbackBean.isSubscribed());
+        toggle.setChecked(feedbackBean.getSubscribed() == 1);
         toggle.setGravity(gravity);
 
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (BuildConfig.DEBUG) {
-                    subscriptionRequestBean = new SubscriptionRequestBean.Builder()
-                            .withUserId(feedbackBean.getUserName())
-                            .withTechnicalUserName(feedbackBean.getTechnicalUserName())
-                            .withFeedbackId(feedbackBean.getId())
-                            .withIsSubscribe(isChecked)
-                            .build();
-                    FeedbackService.getInstance().createSubscription(getListener(), getSubscriptionRequestBean());
-                }
-                //TODO [jfo] real implementation
+                FeedbackService.getInstance().createSubscription(getListener(), context, RepositoryStub.getFeedback(context, feedbackBean), isChecked);
             }
         });
 
@@ -71,7 +57,7 @@ public class SubscriptionsListItem extends AbstractSettingsListItem implements I
     @Override
     public void onEventCompleted(EventType eventType, Object response) {
         if (BuildConfig.DEBUG && eventType == EventType.CREATE_SUBSCRIPTION) {
-            if (getSubscriptionRequestBean().getSubscribe()) {
+            if (((LocalFeedbackState) response).isSubscribed()) {
                 Toast.makeText(getContext(), "Subscribed to " + getFeedbackBean().getTitle(), Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(getContext(), "Unsubscribed to " + getFeedbackBean().getTitle(), Toast.LENGTH_SHORT).show();

@@ -28,4 +28,10 @@ public class Enums {
             return label;
         }
     }
+
+    public enum SETTINGS_VIEW {
+        MINE,
+        OTHERS,
+        SUBSCRIPTIONS
+    }
 }

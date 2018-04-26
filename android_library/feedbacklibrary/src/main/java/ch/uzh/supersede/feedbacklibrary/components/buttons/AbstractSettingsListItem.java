@@ -14,7 +14,8 @@ import android.widget.TextView;
 
 import ch.uzh.supersede.feedbacklibrary.R;
 import ch.uzh.supersede.feedbacklibrary.activities.FeedbackDetailsActivity;
-import ch.uzh.supersede.feedbacklibrary.beans.FeedbackBean;
+import ch.uzh.supersede.feedbacklibrary.beans.LocalFeedbackBean;
+import ch.uzh.supersede.feedbacklibrary.stubs.RepositoryStub;
 import ch.uzh.supersede.feedbacklibrary.utils.DateUtility;
 import ch.uzh.supersede.feedbacklibrary.utils.NumberUtility;
 
@@ -22,7 +23,7 @@ import static ch.uzh.supersede.feedbacklibrary.utils.Constants.EXTRA_KEY_FEEDBAC
 
 public abstract class AbstractSettingsListItem extends LinearLayout {
     public static final int PADDING = 10;
-    private FeedbackBean feedbackBean;
+    private LocalFeedbackBean feedbackBean;
     private Drawable coloredBackground;
     private LinearLayout upperWrapperLayout;
     private LinearLayout lowerWrapperLayout;
@@ -30,7 +31,7 @@ public abstract class AbstractSettingsListItem extends LinearLayout {
     private TextView titleView;
     private int textColor;
 
-    public FeedbackBean getFeedbackBean() {
+    public LocalFeedbackBean getFeedbackBean() {
         return feedbackBean;
     }
 
@@ -64,7 +65,7 @@ public abstract class AbstractSettingsListItem extends LinearLayout {
         return titleView;
     }
 
-    public AbstractSettingsListItem(Context context, int visibleTiles, FeedbackBean feedbackBean) {
+    public AbstractSettingsListItem(Context context, int visibleTiles, LocalFeedbackBean feedbackBean) {
         super(context);
         this.feedbackBean = feedbackBean;
 
@@ -87,11 +88,11 @@ public abstract class AbstractSettingsListItem extends LinearLayout {
         upperWrapperLayout = createWrapperLayout(longParams, context, HORIZONTAL);
         lowerWrapperLayout = createWrapperLayout(longParams, context, HORIZONTAL);
 
-        titleView = createTextView(getShortParams(), context, feedbackBean.getUserName().concat(": " + feedbackBean.getTitle()), Gravity.START, getColoredBackground(), PADDING, getTextColor());
-        dateView = createTextView(shortParams, context, context.getString(R.string.list_date, DateUtility.getDateFromLong(feedbackBean.getTimeStamp())), Gravity.END, coloredBackground, PADDING,
+        titleView = createTextView(getShortParams(), context, feedbackBean.getTitle(), Gravity.START, getColoredBackground(), PADDING, getTextColor());
+        dateView = createTextView(shortParams, context, context.getString(R.string.list_date, DateUtility.getDateFromLong(feedbackBean.getCreationDate())), Gravity.END, coloredBackground, PADDING,
                 textColor);
-        TextView statusView = createTextView(shortParams, context, feedbackBean.getFeedbackStatus().getLabel(),
-                Gravity.START, coloredBackground, PADDING, feedbackBean.getFeedbackStatus().getColor());
+        TextView statusView = createTextView(shortParams, context, feedbackBean.getStatus().getLabel(),
+                Gravity.START, coloredBackground, PADDING, feedbackBean.getStatus().getColor());
 
         lowerWrapperLayout.addView(statusView);
 
@@ -107,7 +108,7 @@ public abstract class AbstractSettingsListItem extends LinearLayout {
     private void startFeedbackDetailsActivity() {
         Intent intent = new Intent(getContext(), FeedbackDetailsActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        intent.putExtra(EXTRA_KEY_FEEDBACK_BEAN, feedbackBean);
+        intent.putExtra(EXTRA_KEY_FEEDBACK_BEAN, RepositoryStub.getFeedback(getContext(), feedbackBean));
         getContext().startActivity(intent);
         ((Activity) getContext()).overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
     }
