@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,15 +13,15 @@ import ch.uzh.supersede.feedbacklibrary.beans.FeedbackResponseBean;
 import ch.uzh.supersede.feedbacklibrary.beans.LocalFeedbackBean;
 import ch.uzh.supersede.feedbacklibrary.database.FeedbackDatabase;
 import ch.uzh.supersede.feedbacklibrary.feedback.Feedback;
-import ch.uzh.supersede.feedbacklibrary.utils.CollectionUtility;
 import ch.uzh.supersede.feedbacklibrary.utils.CompareUtility;
 import ch.uzh.supersede.feedbacklibrary.utils.DateUtility;
 import ch.uzh.supersede.feedbacklibrary.utils.Enums;
 import ch.uzh.supersede.feedbacklibrary.utils.NumberUtility;
 
 import static ch.uzh.supersede.feedbacklibrary.database.FeedbackDatabase.SAVE_MODE.*;
-import static ch.uzh.supersede.feedbacklibrary.utils.Constants.*;
+import static ch.uzh.supersede.feedbacklibrary.utils.Constants.USER_NAME;
 import static ch.uzh.supersede.feedbacklibrary.utils.Enums.FEEDBACK_STATUS.*;
+import static ch.uzh.supersede.feedbacklibrary.utils.Enums.SAVE_MODE.*;
 import static ch.uzh.supersede.feedbacklibrary.utils.PermissionUtility.USER_LEVEL.ACTIVE;
 
 public class RepositoryStub {
@@ -32,7 +31,7 @@ public class RepositoryStub {
     }
 
     public static List<FeedbackBean> getFeedback(Context context, int count, int minUpVotes, int maxUpVotes, float ownFeedbackPercent) {
-        ArrayList<FeedbackBean> feedbackBeans = new ArrayList<>();
+        List<FeedbackBean> feedbackBeans = new ArrayList<>();
         for (int f = 0; f < count; f++) {
             feedbackBeans.add(getFeedback(context, minUpVotes, maxUpVotes, ownFeedbackPercent));
         }
@@ -52,7 +51,6 @@ public class RepositoryStub {
         String description = content[0];
         String title = content[1];
         String userName = feedbackBean.getUserName();
-        String technicalUserName = feedbackBean.getTechnicalUserName();
         String[] labels = GeneratorStub.BagOfLabels.pickRandom(5);
         int upVotes = feedbackBean.getUpVotes();
         long timeStamp = generateTimestamp();
@@ -64,7 +62,6 @@ public class RepositoryStub {
                 .withTitle(title)
                 .withDescription(description)
                 .withUserName(userName)
-                .withTechnicalUserName(technicalUserName)
                 .withLabels(labels)
                 .withTimestamp(timeStamp)
                 .withStatus(status)
@@ -80,13 +77,11 @@ public class RepositoryStub {
         boolean developerFeedback = NumberUtility.randomInt(0, upperBound > 0 ? upperBound - 1 : upperBound) == 0;
         String content = generateContent();
         String userName = feedbackOwner ? feedbackBean.getUserName() : generateUserName(context, false);
-        String technicalUserName = generateTechnicalUserName(context, false);
         long timeStamp = DateUtility.getPastDateAfter(feedbackCreationDate);
         return new FeedbackResponseBean.Builder()
                 .withFeedbackUid(feedbackBean.getFeedbackUid())
                 .withContent(content)
                 .withUserName(userName)
-                .withTechnicalUserName(technicalUserName)
                 .withTimestamp(timeStamp)
                 .isDeveloper(developerFeedback)
                 .isFeedbackOwner(feedbackOwner)
@@ -100,7 +95,6 @@ public class RepositoryStub {
         Enums.FEEDBACK_STATUS feedbackStatus = generateFeedbackStatus();
         String title = generateTitle();
         String userName = generateUserName(context, ownFeedback);
-        String technicalUserName = generateTechnicalUserName(context, ownFeedback);
         long timeStamp = generateTimestamp();
         int upVotes = generateUpVotes(minUpVotes, maxUpVotes, feedbackStatus);
         int responses = generateResponses();
@@ -108,7 +102,6 @@ public class RepositoryStub {
                 .withFeedbackUid(feedbackUid)
                 .withTitle(title)
                 .withUserName(userName)
-                .withTechnicalUserName(technicalUserName)
                 .withTimestamp(timeStamp)
                 .withUpVotes(upVotes)
                 .withMinUpVotes(minUpVotes)
@@ -118,9 +111,9 @@ public class RepositoryStub {
                 .build();
     }
 
-    public static FeedbackBean getFeedback(Context context, LocalFeedbackBean localFeedbackBean){
+    public static FeedbackBean getFeedback(Context context, LocalFeedbackBean localFeedbackBean) {
         int minUpVotes = -30; //FIXME [jfo]
-        int maxUpVotes  = 50; //FIXME [jfo]
+        int maxUpVotes = 50; //FIXME [jfo]
 
         UUID feedbackUid = localFeedbackBean.getFeedbackUid();
         String title = localFeedbackBean.getTitle();
@@ -128,14 +121,12 @@ public class RepositoryStub {
         int upVotes = localFeedbackBean.getVotes() + generateUpVotes(minUpVotes, maxUpVotes, feedbackStatus);
         long timeStamp = localFeedbackBean.getCreationDate();
         int responses = localFeedbackBean.getResponses();
-        String technicalUserName = FeedbackDatabase.getInstance(context).readString(TECHNICAL_USER_NAME, null);
         String userName = FeedbackDatabase.getInstance(context).readString(USER_NAME, null);
 
         return new FeedbackBean.Builder()
                 .withFeedbackUid(feedbackUid)
                 .withTitle(title)
                 .withUserName(userName)
-                .withTechnicalUserName(technicalUserName)
                 .withTimestamp(timeStamp)
                 .withUpVotes(upVotes)
                 .withMinUpVotes(minUpVotes)
@@ -168,22 +159,11 @@ public class RepositoryStub {
     }
 
     @NonNull
-    private static String generateTechnicalUserName(Context context, boolean own) {
-        if (own) {
-            if (ownUser == null) {
-                ownUser = FeedbackDatabase.getInstance(context).readString(TECHNICAL_USER_NAME, null);
-            }
-            return ownUser;
-        }
-        return UUID.randomUUID().toString();
-    }
-
-    @NonNull
     private static String generateUserName(Context context, boolean own) {
         if (own) {
             return FeedbackDatabase.getInstance(context).readString(USER_NAME, null);
         }
-        return RepositoryStub.getUniqueName(GeneratorStub.BagOfNames.pickRandom());
+        return RepositoryStub.registerAndGetUniqueName(GeneratorStub.BagOfNames.pickRandom(), false);
     }
 
     @NonNull
@@ -201,10 +181,9 @@ public class RepositoryStub {
         return GeneratorStub.BagOfFeedback.pickRandomWithTitle();
     }
 
-
     //Should be generated on the Server
     //Return value is something like Jake --> Jake#12345678 (random 8 digits)
-    public static String getUniqueName(String name) {
+    public static String registerAndGetUniqueName(String name, boolean isDeveloper) {
         return name.concat("#").concat(String.valueOf(NumberUtility.multiply(99999999, Math.random())));
     }
 
@@ -228,14 +207,13 @@ public class RepositoryStub {
         FeedbackDatabase.getInstance(context).writeFeedback(bean, subscribed ? SUBSCRIBED : UN_SUBSCRIBED);
     }
 
-    public static FeedbackBean feedbackToFeedbackBean(Context context, Feedback feedback){
+    public static FeedbackBean feedbackToFeedbackBean(Context context, Feedback feedback) {
         int minUpVotes = -30; //FIXME [jfo]
-        int maxUpVotes  = 50; //FIXME [jfo]
+        int maxUpVotes = 50; //FIXME [jfo]
 
         UUID feedbackUid = UUID.randomUUID();
         String title = feedback.getTextFeedbackList().get(0).getText();
         String userName = generateUserName(context, true);
-        String technicalUserName = generateTechnicalUserName(context, true);
         long timeStamp = generateTimestamp();
         int upVotes = 0;
         int responses = 0;
@@ -245,7 +223,6 @@ public class RepositoryStub {
                 .withFeedbackUid(feedbackUid)
                 .withTitle(title)
                 .withUserName(userName)
-                .withTechnicalUserName(technicalUserName)
                 .withTimestamp(timeStamp)
                 .withUpVotes(upVotes)
                 .withMinUpVotes(minUpVotes)

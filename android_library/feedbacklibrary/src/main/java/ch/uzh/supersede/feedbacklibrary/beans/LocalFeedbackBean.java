@@ -8,7 +8,7 @@ import java.util.UUID;
 
 import ch.uzh.supersede.feedbacklibrary.utils.Enums;
 
-public class LocalFeedbackBean implements Serializable {
+public class LocalFeedbackBean {
     private long creationDate;
     private long votedDate;
     private long subscribedDate;
@@ -17,26 +17,26 @@ public class LocalFeedbackBean implements Serializable {
     private int voted;
     private int subscribed;
     private int votes;
+    private int responses;
+    private String feedbackStatusLabel;
     private int responded;
     private UUID feedbackUid;
     private String title;
-    private Enums.FEEDBACK_STATUS status;
-    private int responses;
 
     public LocalFeedbackBean(Cursor cursor) {
         this.feedbackUid = UUID.fromString(cursor.getString(0));
         this.title = cursor.getString(1);
         this.votes = cursor.getInt(2);
-        this.owner = cursor.getInt(3);
-        this.creationDate = cursor.getLong(4);
-        this.voted = cursor.getInt(5);
-        this.votedDate = cursor.getLong(6);
-        this.subscribed = cursor.getInt(7);
-        this.subscribedDate = cursor.getLong(8);
-        this.responded = cursor.getInt(9);
-        this.respondedDate = cursor.getLong(10);
-        this.status = Enums.FEEDBACK_STATUS.OPEN; //FIXME remove
-        this.responses = new Random().nextInt(100); //FIXME remove
+        this.responses = cursor.getInt(3);
+        this.feedbackStatusLabel = cursor.getString(4);
+        this.owner = cursor.getInt(5);
+        this.creationDate = cursor.getLong(6);
+        this.voted = cursor.getInt(7);
+        this.votedDate = cursor.getLong(8);
+        this.subscribed = cursor.getInt(9);
+        this.subscribedDate = cursor.getLong(10);
+        this.responded = cursor.getInt(11);
+        this.respondedDate = cursor.getLong(12);
     }
 
     public long getCreationDate() {
@@ -67,6 +67,10 @@ public class LocalFeedbackBean implements Serializable {
         return votes;
     }
 
+    public int getResponses() {
+        return responses;
+    }
+
     public UUID getFeedbackUid() {
         return feedbackUid;
     }
@@ -83,15 +87,7 @@ public class LocalFeedbackBean implements Serializable {
         return responded;
     }
 
-    public Enums.FEEDBACK_STATUS getStatus() {
-        return status;
-    }
-
-    public void setStatus(Enums.FEEDBACK_STATUS status) {
-        this.status = status;
-    }
-
-    public int getResponses() {
-        return responses;
+    public Enums.FEEDBACK_STATUS getFeedbackStatus(){
+        return Enums.resolveFeedbackStatus(feedbackStatusLabel);
     }
 }
