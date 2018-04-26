@@ -7,16 +7,15 @@ import ch.fhnw.cere.repository.integration.FeedbackCentralIntegrator;
 import ch.fhnw.cere.repository.integration.MdmFileIntegrator;
 import ch.fhnw.cere.repository.models.*;
 import ch.fhnw.cere.repository.models.orchestrator.Application;
-import ch.fhnw.cere.repository.services.FeedbackEmailService;
-import ch.fhnw.cere.repository.services.FeedbackService;
-import ch.fhnw.cere.repository.services.FileStorageService;
-import ch.fhnw.cere.repository.services.OrchestratorApplicationService;
+import ch.fhnw.cere.repository.services.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javafx.stage.Screen;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +25,9 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -172,18 +173,25 @@ public class FeedbackController extends BaseController {
         }
 
         try {
-            List<File> allFiles = fileStorageService.getAllStoredFilesOfFeedback(feedback);
-            for(File file : allFiles) {
-                if(file.exists()) {
-                    LOGGER.info("MdmFileIntegrator: File exists: " + file.getAbsolutePath());
-                } else {
-                    LOGGER.error("MdmFileIntegrator: File does NOT exist: " + file.getAbsolutePath());
+            List<File> attachmentFiles = fileStorageService.getFeedbackFiles(feedback, feedback.getAttachmentFeedbacks(), parts);
+            List<File> screenshotFiles = fileStorageService.getFeedbackFiles(feedback, feedback.getScreenshotFeedbacks(), parts);
+            List<File> audioFiles = fileStorageService.getFeedbackFiles(feedback, feedback.getAudioFeedbacks(), parts);
+            List<File> allFiles = new ArrayList<File>() {{
+                if(attachmentFiles != null) {
+                    addAll(attachmentFiles);
                 }
+                if(screenshotFiles != null) {
+                    addAll(screenshotFiles);
+                }
+                if(audioFiles != null) {
+                    addAll(audioFiles);
+                }
+            }};
+            for(File file : allFiles) {
                 mdmFileIntegrator.sendFile(file);
-                LOGGER.info("MdmFileIntegrator: File sent to WP2");
             }
         } catch (Exception e) {
-            LOGGER.error("MdmFileIntegrator: Files could not be forwarded to WP2: " + e.getLocalizedMessage());
+            LOGGER.error("Files could not be forwarded to WP2: " + e.getLocalizedMessage());
             e.printStackTrace();
         }
 

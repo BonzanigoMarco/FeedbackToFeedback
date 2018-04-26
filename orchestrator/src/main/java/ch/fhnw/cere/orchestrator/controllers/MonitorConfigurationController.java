@@ -92,11 +92,19 @@ public class MonitorConfigurationController extends BaseController {
     		@PathVariable long id) {
         monitorConfiguration.setMonitorTool(getMonitoringTool());
     	try {
-			MonitorManagerProxy<?, ?> proxy = new MonitorManagerProxy<>();
-			MonitorSpecificConfiguration configurationObj = generateMonitorConf(monitorConfiguration, getMonitoringTool());
-			configurationObj.setId((int) id);
-			proxy.updateMonitorConfiguration(configurationObj);
-			return monitorConfiguration;
+    		for (MonitorConfiguration cnf : monitorConfigurationRepository.findAll()) {
+	    		if (cnf.getMonitorTool().equals(getMonitoringTool()) && 
+	    				cnf.getMonitorManagerId() == id) {
+	    			MonitorManagerProxy<?, ?> proxy = new MonitorManagerProxy<>();
+	    			MonitorSpecificConfiguration configurationObj = generateMonitorConf(monitorConfiguration, getMonitoringTool());
+	    			configurationObj.setId((int) id);
+	    			proxy.updateMonitorConfiguration(configurationObj);
+	    			monitorConfiguration.setMonitorManagerId(id);
+	    			monitorConfiguration.setId(cnf.getId());
+	    			monitorConfigurationRepository.save(monitorConfiguration);
+	    			return monitorConfiguration;
+	    		}
+	    	}
     	} catch (Exception e) {
     		e.printStackTrace();
     	}

@@ -39,7 +39,8 @@ public class DataProviderIntegrator {
 
         if(topic != null && !topic.equals("")) {
             String json = toJson(feedback);
-            dataProviderProxy.ingestData(json, topic);
+            JSONObject jsonData = new JSONObject(json);
+            dataProviderProxy.ingestData(jsonData, topic);
         }
     }
 

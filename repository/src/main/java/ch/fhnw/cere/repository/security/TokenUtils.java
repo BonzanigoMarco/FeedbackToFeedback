@@ -22,7 +22,7 @@ public class TokenUtils {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("604800000") // 7000 days
+    @Value("604800")
     private Long expiration;
 
     public String getUsernameFromToken(String token) {

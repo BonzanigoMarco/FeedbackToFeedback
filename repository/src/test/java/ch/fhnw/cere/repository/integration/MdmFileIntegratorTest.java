@@ -1,19 +1,33 @@
 package ch.fhnw.cere.repository.integration;
 
 import ch.fhnw.cere.repository.RepositoryApplication;
+import ch.fhnw.cere.repository.models.orchestrator.Application;
+import ch.fhnw.cere.repository.services.OrchestratorApplicationService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 @RunWith(SpringRunner.class)
@@ -34,6 +48,10 @@ public class MdmFileIntegratorTest {
     @Value("${supersede.upload_directory.screenshots_folder_name}")
     protected String screenshotsFolderName;
 
+    @Autowired
+    private MdmFileIntegrator mdmFileIntegrator;
+
+
     @Before
     public void setup() throws Exception {
         createRepositoryFilesDirectory();
@@ -49,6 +67,7 @@ public class MdmFileIntegratorTest {
         File resourcesDirectory = new File("src/test/resources");
         File attachment = new File(resourcesDirectory.getAbsolutePath() + "/test_file.pdf");
 
+        mdmFileIntegrator.sendFile(attachment);
     }
 
     protected void deleteUploadDirectorySubFolders() {

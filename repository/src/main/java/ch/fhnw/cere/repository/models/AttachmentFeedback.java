@@ -40,7 +40,7 @@ public class AttachmentFeedback implements FileFeedback, MechanismFeedback {
     public String toString() {
         return String.format(
                 "AttachmentFeedback[id=%d, feedbackId='%d', mechanismId='%d', path='%s']",
-                id, feedback != null ? feedback.getId() : null, mechanismId, path);
+                id, feedback.getId(), mechanismId, path);
     }
 
     public AttachmentFeedback() {
