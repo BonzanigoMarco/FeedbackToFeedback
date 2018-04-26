@@ -10,25 +10,22 @@ import android.support.v7.widget.LinearLayoutCompat;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.*;
 
 import ch.uzh.supersede.feedbacklibrary.R;
 import ch.uzh.supersede.feedbacklibrary.activities.FeedbackDetailsActivity;
 import ch.uzh.supersede.feedbacklibrary.database.FeedbackDatabase;
 import ch.uzh.supersede.feedbacklibrary.interfaces.ISortableFeedback;
-import ch.uzh.supersede.feedbacklibrary.services.FeedbackService;
 import ch.uzh.supersede.feedbacklibrary.utils.ColorUtility;
 import ch.uzh.supersede.feedbacklibrary.utils.DateUtility;
-import ch.uzh.supersede.feedbacklibrary.utils.FeedbackUtility;
 import ch.uzh.supersede.feedbacklibrary.utils.NumberUtility;
 import ch.uzh.supersede.feedbacklibrary.utils.StringUtility;
 import ch.uzh.supersede.feedbacklibrary.beans.FeedbackBean;
 
 import static ch.uzh.supersede.feedbacklibrary.interfaces.ISortableFeedback.FEEDBACK_SORTING.*;
 import static ch.uzh.supersede.feedbacklibrary.utils.Constants.*;
+import static ch.uzh.supersede.feedbacklibrary.utils.Enums.FEEDBACK_STATUS.DUPLICATE;
 import static ch.uzh.supersede.feedbacklibrary.utils.PermissionUtility.USER_LEVEL.ACTIVE;
-import static ch.uzh.supersede.feedbacklibrary.beans.FeedbackBean.FEEDBACK_STATUS.DUPLICATE;
 
 public class FeedbackListItem extends LinearLayout implements Comparable, ISortableFeedback {
     private TextView titleView;
@@ -55,7 +52,7 @@ public class FeedbackListItem extends LinearLayout implements Comparable, ISorta
         masterParams.setMargins(5, 5, 5, 5);
         setLayoutParams(masterParams);
         setOrientation(VERTICAL);
-        LinearLayoutCompat.LayoutParams longParams = new LinearLayoutCompat.LayoutParams(screenWidth, partHeight / 2);
+        LinearLayoutCompat.LayoutParams longParams = new LinearLayoutCompat.LayoutParams(innerLayoutWidth, partHeight / 2);
         LinearLayoutCompat.LayoutParams shortParams = new LinearLayoutCompat.LayoutParams(innerLayoutWidth / 2, partHeight / 2);
         Drawable drawable = ContextCompat.getDrawable(context, R.drawable.dark_blue_square);
         int white = ContextCompat.getColor(context, R.color.white);
@@ -70,9 +67,9 @@ public class FeedbackListItem extends LinearLayout implements Comparable, ISorta
                 .getFeedbackStatus()
                 .getLabel()
                 .concat(SPACE + context.getString(R.string.list_resplies, feedbackBean.getResponses())), Gravity.START, drawable, padding, feedbackBean.getFeedbackStatus().getColor());
-        String upVotes = FeedbackUtility.getUpVotesAsText(feedbackBean);
-        pointView = createTextView(shortParams, context, upVotes, Gravity.END, drawable, padding, white);
+        pointView = createTextView(shortParams, context, feedbackBean.getVotesAsText(), Gravity.END, drawable, padding, white);
         updatePercentageColor();
+        setBackgroundColor(ContextCompat.getColor(context, R.color.indigo));
         upperWrapperLayout.addView(titleView);
         upperWrapperLayout.addView(dateView);
         lowerWrapperLayout.addView(statusView);
@@ -137,17 +134,14 @@ public class FeedbackListItem extends LinearLayout implements Comparable, ISorta
     }
 
     public void updatePercentageColor() {
-        int minUpVotes = -50; //FIXME [jfo] remove if possible
-        int maxUpVotes = 50;
-
         float percent;
         if (feedbackBean.getUpVotes() < 0) {
-            percent = 1f / (2 * minUpVotes) * (minUpVotes - feedbackBean.getUpVotes());
+            percent = 1f / (2 * feedbackBean.getMinUpVotes()) * (feedbackBean.getMinUpVotes() - feedbackBean.getUpVotes());
         } else if (feedbackBean.getUpVotes() == 0) {
             pointView.setTextColor(DUPLICATE.getColor());
             return;
         } else {
-            percent = 1f / (2 * maxUpVotes) * (maxUpVotes + feedbackBean.getUpVotes());
+            percent = 1f / (2 * feedbackBean.getMaxUpVotes()) * (feedbackBean.getMaxUpVotes() + feedbackBean.getUpVotes());
         }
         pointView.setTextColor(ColorUtility.percentToColor(percent));
     }
