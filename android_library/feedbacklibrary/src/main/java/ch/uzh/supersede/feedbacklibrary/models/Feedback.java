@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import ch.uzh.supersede.feedbacklibrary.beans.LocalConfigurationBean;
 import ch.uzh.supersede.feedbacklibrary.utils.CompareUtility;
+import ch.uzh.supersede.feedbacklibrary.utils.Enums;
 
 public class Feedback implements Serializable {
 
@@ -49,8 +49,9 @@ public class Feedback implements Serializable {
     private int votes;
     private int minVotes;
     private int maxVotes;
-    //private Enums.FEEDBACK_STATUS feedbackStatus; TODO [jfo]
+    private int responses;
 
+    //private Enums.FEEDBACK_STATUS feedbackStatus; //TODO [jfo]
 
     private Feedback() {
     }
@@ -165,11 +166,9 @@ public class Feedback implements Serializable {
         return applicationId;
     }
 
-
     public long getConfigurationId() {
         return configurationId;
     }
-
 
     public ContextInformationFeedback getContextInformationFeedback() {
         return contextInformationFeedback;
@@ -233,5 +232,13 @@ public class Feedback implements Serializable {
 
     public int getMaxVotes() {
         return maxVotes;
+    }
+
+    public int getResponses() {
+        return responses;
+    }
+
+    public Enums.FEEDBACK_STATUS getFeedbackStatus() {
+        return Enums.FEEDBACK_STATUS.OPEN; //FIXME [jfo]
     }
 }
