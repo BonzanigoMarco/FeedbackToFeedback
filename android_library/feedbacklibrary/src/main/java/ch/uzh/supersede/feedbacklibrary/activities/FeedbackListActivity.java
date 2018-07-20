@@ -102,17 +102,16 @@ public class FeedbackListActivity extends AbstractBaseActivity implements IFeedb
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void onEventCompleted(EventType eventType, Object response) {
         switch (eventType) {
             case GET_FEEDBACK_LIST:
                 if (response instanceof List) {
-                    List<FeedbackDetailsBean> feedbackDetailsBeans = new ArrayList<>();
                     for (Feedback feedback : (List<Feedback>) response) {
-                        FeedbackDetailsBean feedbackDetailsBean = FeedbackUtility.feedbackToFeedbackDetailsBean(this, feedback);
-                        if (feedbackDetailsBean != null){ //Avoid NP caused by old Repository Feedback
-                            feedbackDetailsBeans.add(feedbackDetailsBean);
-                            allFeedbackList.add(new FeedbackListItem(this, 8, feedbackDetailsBean, configuration, getTopColor(0)));
-                        }
+                        //                        FeedbackDetailsBean feedbackDetailsBean = FeedbackUtility.feedbackToFeedbackDetailsBean(this, feedback);
+                        //                        if (feedbackDetailsBean != null){ //Avoid NP caused by old Repository Feedback
+                        allFeedbackList.add(new FeedbackListItem(this, 8, feedback, configuration, getTopColor(0)));
+                        //                        }
                     }
                     activeFeedbackList = new ArrayList<>(allFeedbackList);
                     doSearch(searchText.getText().toString());
@@ -250,7 +249,7 @@ public class FeedbackListActivity extends AbstractBaseActivity implements IFeedb
         }
         if (!getString(R.string.list_edit_search).equals(s) && StringUtility.hasText(s)) {
             for (FeedbackListItem item : allFeedbackList) {
-                if (item.getFeedbackBean().getTitle().toLowerCase().contains(s.toLowerCase())) {
+                if (item.getFeedback().getTitle().toLowerCase().contains(s.toLowerCase())) {
                     activeFeedbackList.add(item);
                 }
             }

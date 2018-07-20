@@ -301,12 +301,12 @@ public abstract class FeedbackService {
         @Override
         public void getFeedbackList(IFeedbackServiceEventListener callback, Activity activity, LocalConfigurationBean configuration, int backgroundColor) {
             ArrayList<FeedbackListItem> allFeedbackList = new ArrayList<>();
-            for (FeedbackDetailsBean bean : RepositoryStub.getFeedback(activity, 50, -30, 50, 0.1f)) {
-                if (bean != null) {
-                    FeedbackListItem listItem = new FeedbackListItem(activity, 8, bean, configuration, backgroundColor);
-                    allFeedbackList.add(listItem);
-                }
-            }
+//            for (FeedbackDetailsBean bean : RepositoryStub.getFeedback(activity, 50, -30, 50, 0.1f)) {
+//                if (bean != null) {
+//                    FeedbackListItem listItem = new FeedbackListItem(activity, 8, bean, configuration, backgroundColor);
+//                    allFeedbackList.add(listItem);
+//                }
+//            }
             callback.onEventCompleted(GET_FEEDBACK_LIST_MOCK, allFeedbackList);
         }
 
